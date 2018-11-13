@@ -8,8 +8,13 @@ import (
 
 // Config holds application configuration
 type Config struct {
-	// HTTPPort is the port the API server will respond to requests on
-	HTTPPort int `envconfig:"http_port" default:"5000"`
+	// PrivateHTTPPort is the port the API server will respond to
+	// private API requests on
+	PrivateHTTPPort int `envconfig:"private_http_port" default:"5000"`
+
+	// PublicHTTPPort is the port the API server will respond to public
+	// API requests on
+	PublicHTTPPort int `envconfig:"public_http_port" default:"5001"`
 
 	// EtcdEndpoint is the host and port to a Etcd server
 	EtcdEndpoint string `envconfig:"etcd_endpoint" default:"http://localhost:2379"`

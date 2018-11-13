@@ -53,13 +53,39 @@ func main() {
 			"repositories key: %s", err.Error())
 	}
 
-	// Run HTTP server
-	logger.Info("Starting HTTP server")
+	// Run HTTP servers
+	serverReturns := make(chan string)
 
-	srv := server.NewServer(ctx, logger, cfg, etcdKV)
+	go func() {
+		// Private
+		logger.Info("Starting private HTTP server")
 
-	err = srv.Run()
-	if err != nil {
-		logger.Fatalf("error starting HTTP server: %s", err.Error())
+		privServer := server.NewPrivateServer(ctx, logger, cfg, etcdKV)
+
+		err = privServer.Run()
+		if err != nil {
+			logger.Fatalf("error while running private HTTP server: %s", err.Error())
+		}
+
+		serverReturns <- "private"
+	}()
+
+	go func() {
+		// Public
+		logger.Info("Starting public HTTP server")
+
+		pubServer := server.NewPublicServer(ctx, logger, cfg, etcdKV)
+
+		err = pubServer.Run()
+		if err != nil {
+			logger.Fatalf("error while running public HTTP server: %s", err.Error())
+		}
+
+		serverReturns <- "public"
+	}()
+
+	// Wait for both servers to stop
+	for i := 0; i < 2; i++ {
+		logger.Infof("%s server stopped", <-serverReturns)
 	}
 }

@@ -17,7 +17,8 @@ Kube Git Deploy API.
 ## Configuration
 Configuration is passed via the following environment variables:  
 
-- `HTTP_PORT` (Optional, Default `5000`)
+- `PRIVATE_HTTP_PORT` (Optional, Default `5000`)
+- `PUBLIC_HTTP_PORT` (Optional, Default `5001`)
 - `ETCD_ENDPOINT` (Optional, Default `localhost:2379`)
 - `GITHUB_CLIENT_ID`
 - `GITHUB_CLIENT_SECRET`
