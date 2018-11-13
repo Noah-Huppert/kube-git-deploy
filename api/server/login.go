@@ -46,6 +46,7 @@ func (h GHLoginURLHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	q := u.Query()
 	q.Set("client_id", h.cfg.GitHubClientID)
 	q.Set("redirect_url", GHRedirectURL)
+	q.Set("scope", "repo")
 
 	u.RawQuery = q.Encode()
 
