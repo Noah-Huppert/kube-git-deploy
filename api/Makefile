@@ -33,5 +33,5 @@ etcdctl:
 		-it \
 		quay.io/coreos/etcd:latest \
 			/usr/local/bin/etcdctl \
-			--endpoints http://localhost:2380 \
+			--endpoints http://localhost:2379 \
 			${ARGS}
