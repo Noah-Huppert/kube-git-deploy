@@ -19,12 +19,22 @@ Kube Git Deploy API.
 Configuration is passed via the following environment variables:  
 
 - `PRIVATE_HTTP_PORT` (Optional, Default `5000`)
+	- Port private API will respond to requests on
 - `PUBLIC_HTTP_PORT` (Optional, Default `5001`)
+	- Port public API will respond to requests on
 - `PUBLIC_HTTP_HOST`
+	- Full URI that public API can be reached at
+	- Should include a schema, host and port (if needed)
+	- Ex: `http://kube-git-deploy.example.com:5001`
 - `PUBLIC_HTTP_SSL_ENABLED` (Optional, Default: `false`)
+	- Indicates if the public API can be reached using SSL
 - `ETCD_ENDPOINT` (Optional, Default `localhost:2379`)
+	- URI of Etcd server
+	- Should include host and port
 - `GITHUB_CLIENT_ID`
+	- GitHub API application client ID
 - `GITHUB_CLIENT_SECRET`
+	- GitHub API application client secret
 
 ## Dependencies
 [Dep](https://github.com/golang/dep) is used to manage dependencies.
