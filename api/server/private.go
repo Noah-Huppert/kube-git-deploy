@@ -33,14 +33,14 @@ func NewPrivateServer(ctx context.Context, logger golog.Logger,
 	router.Handle("/api/v0/github/repositories/tracked",
 		GetTrackedGHReposHandler{
 			ctx:    ctx,
-			logger: logger,
+			logger: logger.GetChild("github.tracked"),
 			etcdKV: etcdKV,
 		}).Methods("GET")
 
 	router.Handle("/api/v0/github/repositories/{user}/{repo}",
 		TrackGHRepoHandler{
 			ctx:    ctx,
-			logger: logger,
+			logger: logger.GetChild("github.track"),
 			cfg:    cfg,
 			etcdKV: etcdKV,
 		}).Methods("POST")
@@ -48,11 +48,12 @@ func NewPrivateServer(ctx context.Context, logger golog.Logger,
 	router.Handle("/api/v0/github/repositories/{user}/{repo}",
 		UntrackGHRepoHandler{
 			ctx:    ctx,
-			logger: logger,
+			logger: logger.GetChild("github.untrack"),
 			cfg:    cfg,
 			etcdKV: etcdKV,
 		}).Methods("DELETE")
 
+	// Create server
 	return Server{
 		ctx:     ctx,
 		logger:  logger.GetChild("http.private"),

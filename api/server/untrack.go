@@ -39,6 +39,35 @@ func (h UntrackGHRepoHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	user := vars["user"]
 	repo := vars["repo"]
 
+	// Check doesn't already exist in Etcd
+	found := true
+
+	_, err := h.etcdKV.Get(h.ctx,
+		libetcd.GetTrackedGHRepoNameKey(user, repo), nil)
+
+	if err != nil && !etcd.IsKeyNotFound(err) {
+		h.logger.Errorf("error determining if key exists: %s",
+			err.Error())
+
+		responder.Respond(http.StatusInternalServerError,
+			map[string]interface{}{
+				"ok": false,
+				"error": "error determining if repository is" +
+					"being tracked",
+			})
+		return
+	} else if err != nil && etcd.IsKeyNotFound(err) {
+		found = false
+	}
+
+	if !found {
+		responder.Respond(http.StatusNotFound, map[string]interface{}{
+			"ok":    false,
+			"error": "repository not being tracked",
+		})
+		return
+	}
+
 	// Get GitHub hook ID
 	resp, err := h.etcdKV.Get(h.ctx,
 		libetcd.GetTrackedGHRepoWebHookIDKey(user, repo), nil)

@@ -98,6 +98,7 @@ func (h TrackGHRepoHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	hookURL.Host = fmt.Sprintf("%s:%d", hookURL.Host, h.cfg.PublicHTTPPort)
 	hookURL.Path = fmt.Sprintf("/api/v0/github/repositories/%s/%s/webhook",
 		user, repo)
 
