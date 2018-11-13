@@ -1,0 +1,8 @@
+# Etcd Container data
+container-data/
+
+# Environment variable configurations
+.env
+
+# Go dependencies
+vendor/

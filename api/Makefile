@@ -1,6 +1,10 @@
-.PHONY: etcd
+.PHONY: api etcd
 
 ETCD_DATA_DIR=${PWD}/container-data/etcd
+
+# run api
+api:
+	go run main.go
 
 # run etcd
 etcd:
