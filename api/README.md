@@ -47,18 +47,15 @@ http://localhost:5000/api/v0/github/oauth_callback
 
 # Endpoints
 ## GitHub
-### Get Repositories
-GET `/api/v0/github/repositories`  
+### Get Tracked Repositories
+GET `/api/v0/github/tracked`  
 
 Request: None
 
 Response:
 
-- `repositories` (Array[Map])
-	- `tracking` (Boolean)
-		- Indicates if server is automatically deploying repository
-	- `name` (String)
-		- Slug
+- `repositories` (Array[String])
+	- Repository names
 - `ok` (Boolean)
 
 ### Track Repository
