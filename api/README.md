@@ -7,6 +7,7 @@ Kube Git Deploy API.
 	- [Configuration](#configuration)
 	- [Dependencies](#dependencies)
 	- [Local Etcd](#local-etcd)
+	- [GitHub Application](#github-application)
 - [Endpoints](#endpoints)
 
 # Overview
@@ -37,6 +38,13 @@ Start a local Etcd server by running:
 make etcd
 ```
 
+## GitHub Application
+Create a GitHub application with an authorization callback URL of: 
+
+```
+http://localhost:5000/api/v0/github/oauth_callback
+```
+
 # Endpoints
 ## GitHub
 ### Get Repositories
@@ -57,18 +65,33 @@ POST `/api/v0/github/repositories/:name/track`
 
 Request: None
 
-Response: None
+Response:
+
+- `ok` (Boolean)
 
 ### Untrack Repository
 POST `/api/v0/github/repositories/:name/untrack`  
 
 Request: None
 
-Response: None
+Response:
+
+- `ok` (Boolean)
+
+### OAuth Callback
+GET `/api/v0/github/oauth_callback?code=:code`  
+
+Request: None
+
+Response: 
+
+- `ok` (Boolean)
 
 ### Webhook
 POST `/api/v0/github/repositories/:name/webhook`  
 
 Request: [GitHub Push Event](https://developer.github.com/v3/activity/events/types/#pushevent)
 
-Response: None
+Response: 
+
+- `ok` (Boolean)
