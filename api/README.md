@@ -9,6 +9,7 @@ Kube Git Deploy API.
 	- [Local Etcd](#local-etcd)
 	- [GitHub Application](#github-application)
 - [Endpoints](#endpoints)
+- [Data](#data)
 
 # Overview
 Kube Git Deploy API.  
@@ -48,13 +49,24 @@ http://localhost:5000/api/v0/github/oauth_callback
 ```
 
 # Endpoints
+The server provides a public and private API.  
+
+The public API is accessible from the internet.  
+The private API is only accessibly internally in Kubernetes.
+
 ## GitHub
 ### Get Tracked Repositories
 GET `/api/v0/github/repositories/tracked`  
 
-Request: None
+**API:** Private
 
-Response:
+**Actions:**
+
+- Return a list of tracked GitHub repositories
+
+**Request:** None
+
+**Response:**
 
 - `repositories` (Array[String])
 	- Repository names
@@ -63,46 +75,74 @@ Response:
 ### Track Repository
 POST `/api/v0/github/repositories/:user/:repo`  
 
-Request: 
+**API:** Private
+
+**Actions:**
+
+- Use the GitHub API to create web hook in repository
+- Save repository as tracked in Etcd
+
+**Request:**
 
 - `:user` (String)
 	- Repository GitHub user
 - `:repo` (String)
 	- Repository name
 
-Response:
+**Response:**
 
 - `ok` (Boolean)
 
 ### Untrack Repository
 DELETE `/api/v0/github/repositories/:user/:repo`  
 
-Request:
+**API:** Private
+
+**Actions:**
+
+- Use GitHub API to delete web hook in repository
+- Delete repository in Etcd
+
+**Request:**
 
 - `:user` (String)
 	- Repository GitHub user
 - `:repo` (String)
 	- Repository name
 
-Response:
+**Response:**
 
 - `ok` (Boolean)
 
 ### OAuth Callback
 GET `/api/v0/github/oauth_callback?code=:code`  
 
-Request: None
+**API:** Private
 
-Response: 
+**Actions:**
+
+- Exchanges a temporary GitHub authentication code for a longer lived access 
+	token
+- Saves longer lived GitHub access token in etcd
+
+**Request:** None
+
+**Response:**
 
 - `ok` (Boolean)
 
 ### Get GitHub Login URL
 GET `/api/v0/github/login_url`  
 
-Request: None
+**API:** Private
 
-Response:
+**Actions:**
+
+- Returns the URL a user should visit to login with GitHub
+
+**Request:** None
+
+**Response:**
 
 - `login_url` (String)
 	- URL to send user to login
@@ -111,7 +151,13 @@ Response:
 ### Webhook
 POST `/api/v0/github/repositories/:user/:repo/webhook`  
 
-Request:
+**API:** Public
+
+**Actions:**
+
+- Triggers a build and deploy of the repository
+
+**Request:**
 
 - [GitHub Push Event](https://developer.github.com/v3/activity/events/types/#pushevent)
 - `:user` (String)
@@ -119,6 +165,11 @@ Request:
 - `:repo` (String)
 	- Repository name
 
-Response: 
+**Response:**
 
 - `ok` (Boolean)
+
+# Data
+Data is stored in Etcd.
+
+## 
