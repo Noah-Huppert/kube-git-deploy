@@ -45,6 +45,14 @@ func NewPrivateServer(ctx context.Context, logger golog.Logger,
 			etcdKV: etcdKV,
 		}).Methods("POST")
 
+	router.Handle("/api/v0/github/repositories/{user}/{repo}",
+		UntrackGHRepoHandler{
+			ctx:    ctx,
+			logger: logger,
+			cfg:    cfg,
+			etcdKV: etcdKV,
+		}).Methods("DELETE")
+
 	return Server{
 		ctx:     ctx,
 		logger:  logger.GetChild("http.private"),

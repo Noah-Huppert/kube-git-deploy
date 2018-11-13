@@ -26,13 +26,13 @@ func GetTrackedGHRepoDirKey(user, repo string) string {
 
 // GetTrackedGHRepoNameKey returns a key to a node which holds a repo's name
 func GetTrackedGHRepoNameKey(user, repo string) string {
-	return fmt.Sprintf("%s/%s/%s/%s", KeyDirTrackedGHRepos, user, repo,
+	return fmt.Sprintf("%s/%s", GetTrackedGHRepoDirKey(user, repo),
 		KeyTrackedGHRepoName)
 }
 
 // GetTrackedGHRepoWebHookIDKey returns a key to a node which holds a repo's
 // web hook ID
 func GetTrackedGHRepoWebHookIDKey(user, repo string) string {
-	return fmt.Sprintf("%s/%s/%s/%s", KeyDirTrackedGHRepos, user, repo,
+	return fmt.Sprintf("%s/%s", GetTrackedGHRepoDirKey(user, repo),
 		KeyTrackedGHRepoWebHookID)
 }
