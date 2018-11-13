@@ -13,6 +13,8 @@ import (
 // NewPrivateServer creates a new server for private API endpoints
 func NewPrivateServer(ctx context.Context, logger golog.Logger,
 	cfg *config.Config, etcdKV etcd.KeysAPI) Server {
+	logger = logger.GetChild("http.private")
+
 	// Setup routes
 	router := mux.NewRouter()
 
@@ -56,7 +58,7 @@ func NewPrivateServer(ctx context.Context, logger golog.Logger,
 	// Create server
 	return Server{
 		ctx:     ctx,
-		logger:  logger.GetChild("http.private"),
+		logger:  logger,
 		cfg:     cfg,
 		etcdKV:  etcdKV,
 		handler: router,

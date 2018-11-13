@@ -20,6 +20,10 @@ type Config struct {
 	// server under
 	PublicHTTPHost string `envconfig:"public_http_host" required:"true"`
 
+	// PublicHTTPSSLEnabled indicates if the public API server has a
+	// SSL certificate
+	PublicHTTPSSLEnabled bool `envconfig:"public_http_ssl_enabled" default:"false"`
+
 	// EtcdEndpoint is the host and port to a Etcd server
 	EtcdEndpoint string `envconfig:"etcd_endpoint" default:"http://localhost:2379"`
 

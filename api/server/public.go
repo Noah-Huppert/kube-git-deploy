@@ -13,12 +13,20 @@ import (
 // NewPublicServer creates a new server for public API endpoints
 func NewPublicServer(ctx context.Context, logger golog.Logger,
 	cfg *config.Config, etcdKV etcd.KeysAPI) Server {
+	logger = logger.GetChild("http.public")
+
 	// Setup routes
 	router := mux.NewRouter()
 
+	router.Handle("/api/v0/github/repositories/{user}/{repo}/web_hook",
+		WebHookHandler{
+			logger: logger.GetChild("github.webhook"),
+		}).Methods("POST")
+
+	// Create server
 	return Server{
 		ctx:     ctx,
-		logger:  logger.GetChild("http.public"),
+		logger:  logger,
 		cfg:     cfg,
 		etcdKV:  etcdKV,
 		handler: router,

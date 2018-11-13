@@ -98,15 +98,22 @@ func (h TrackGHRepoHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	hookURL.Host = fmt.Sprintf("%s:%d", hookURL.Host, h.cfg.PublicHTTPPort)
-	hookURL.Path = fmt.Sprintf("/api/v0/github/repositories/%s/%s/webhook",
+	noSSLVerify := 1
+	if h.cfg.PublicHTTPSSLEnabled {
+		hookURL.Scheme = "https"
+		noSSLVerify = 0
+	}
+
+	hookURL.Path = fmt.Sprintf("/api/v0/github/repositories/%s/%s/web_hook",
 		user, repo)
 
 	// ... Call GitHub hook API
 	hook, _, err := ghClient.Repositories.CreateHook(h.ctx, user, repo,
 		&github.Hook{
 			Config: map[string]interface{}{
-				"url": hookURL.String(),
+				"url":          hookURL.String(),
+				"content_type": "json",
+				"insecure_ssl": noSSLVerify,
 			},
 		})
 	if err != nil {

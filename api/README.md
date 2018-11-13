@@ -21,6 +21,7 @@ Configuration is passed via the following environment variables:
 - `PRIVATE_HTTP_PORT` (Optional, Default `5000`)
 - `PUBLIC_HTTP_PORT` (Optional, Default `5001`)
 - `PUBLIC_HTTP_HOST`
+- `PUBLIC_HTTP_SSL_ENABLED` (Optional, Default: `false`)
 - `ETCD_ENDPOINT` (Optional, Default `localhost:2379`)
 - `GITHUB_CLIENT_ID`
 - `GITHUB_CLIENT_SECRET`
@@ -148,7 +149,7 @@ GET `/api/v0/github/login_url`
 - `ok` (Boolean)
 
 ## Webhook
-POST `/api/v0/github/repositories/:user/:repo/webhook`  
+POST `/api/v0/github/repositories/:user/:repo/web_hook`  
 
 **API:** Public
 

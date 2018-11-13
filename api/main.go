@@ -58,7 +58,8 @@ func main() {
 
 	go func() {
 		// Private
-		logger.Info("Starting private HTTP server")
+		logger.Infof("Starting private HTTP server on :%d",
+			cfg.PrivateHTTPPort)
 
 		privServer := server.NewPrivateServer(ctx, logger, cfg, etcdKV)
 
@@ -72,7 +73,8 @@ func main() {
 
 	go func() {
 		// Public
-		logger.Info("Starting public HTTP server")
+		logger.Infof("Starting public HTTP server on %s",
+			cfg.PublicHTTPHost)
 
 		pubServer := server.NewPublicServer(ctx, logger, cfg, etcdKV)
 
