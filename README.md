@@ -17,7 +17,7 @@ pushes.
 - Golang CLI
 
 ## Behavior
-API server creates GitHub webhooks for repositories.  
+API server creates GitHub webhooks for repositories. Has no API authentication.  
 
 Receives GitHub webhook requests for every commit.  
 
