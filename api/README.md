@@ -172,4 +172,29 @@ POST `/api/v0/github/repositories/:user/:repo/webhook`
 # Data
 Data is stored in Etcd.
 
-## 
+## GitHub Access Token
+**Key:** `/github/auth/token`  
+**Dir:** False
+
+Holds a user's GitHub access token.
+
+## Tracked GitHub Repository
+**Key:** `/github/repositories/tracked/[USER]/[REPO]`  
+**Dir:** True
+
+Tracked GitHub repositories each have their own directory.  
+
+Data related to this tracked GitHub repository is stored in nodes inside of 
+this directory.
+
+### Name
+**Key:** `/github/repoositories/tracked/[USER]/[REPO]/name`  
+**Dir:** False
+
+Holds the name of the tracked GitHub repository.
+
+### Web Hook ID
+**Key:** `/github/repositories/tracked/[USER]/[REPO]/web_hook_id`  
+**Dir:** False
+
+Holds the ID of the GitHub repository web hook.
