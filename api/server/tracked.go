@@ -46,10 +46,7 @@ func (h GetTrackedGHReposHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	repos := []string{}
-	for _, node := range resp.Node.Nodes {
-		repos = append(repos, node.Value)
-	}
+	repos := libetcd.TraverseDir(resp.Node)
 
 	responder.Respond(http.StatusOK, map[string]interface{}{
 		"ok":           true,

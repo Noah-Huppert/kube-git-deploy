@@ -48,7 +48,7 @@ func main() {
 			Dir:       true,
 			PrevExist: etcd.PrevNoExist,
 		})
-	if err != nil {
+	if err != nil && err.(etcd.Error).Code != etcd.ErrorCodeNodeExist {
 		logger.Fatalf("error creating initial empty tracked GitHub "+
 			"repositories key: %s", err.Error())
 	}

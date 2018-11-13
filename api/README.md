@@ -48,7 +48,7 @@ http://localhost:5000/api/v0/github/oauth_callback
 # Endpoints
 ## GitHub
 ### Get Tracked Repositories
-GET `/api/v0/github/tracked`  
+GET `/api/v0/github/repositories/tracked`  
 
 Request: None
 
@@ -59,7 +59,7 @@ Response:
 - `ok` (Boolean)
 
 ### Track Repository
-POST `/api/v0/github/repositories/:user/:repo/track`  
+POST `/api/v0/github/repositories/:user/:repo`  
 
 Request: 
 
@@ -73,7 +73,7 @@ Response:
 - `ok` (Boolean)
 
 ### Untrack Repository
-POST `/api/v0/github/repositories/:user/:repo/untrack`  
+DELETE `/api/v0/github/repositories/:user/:repo`  
 
 Request:
 

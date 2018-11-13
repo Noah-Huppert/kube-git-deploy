@@ -50,20 +50,27 @@ func (s Server) Run() error {
 			logger: s.logger.GetChild("github.oauth_callback"),
 			cfg:    s.cfg,
 			etcdKV: s.etcdKV,
-		})
+		}).Methods("GET")
 
 	router.Handle("/api/v0/github/login_url",
 		GHLoginURLHandler{
 			logger: s.logger.GetChild("github.login_url"),
 			cfg:    s.cfg,
-		})
+		}).Methods("GET")
 
-	router.Handle("/api/v0/github/tracked",
+	router.Handle("/api/v0/github/repositories/tracked",
 		GetTrackedGHReposHandler{
 			ctx:    s.ctx,
 			logger: s.logger,
 			etcdKV: s.etcdKV,
-		})
+		}).Methods("GET")
+
+	router.Handle("/api/v0/github/repositories/{user}/{repo}",
+		TrackGHRepoHandler{
+			ctx:    s.ctx,
+			logger: s.logger,
+			etcdKV: s.etcdKV,
+		}).Methods("POST")
 
 	// Create server
 	server := http.Server{
