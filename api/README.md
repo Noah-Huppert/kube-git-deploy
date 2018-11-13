@@ -19,6 +19,7 @@ Configuration is passed via the following environment variables:
 
 - `PRIVATE_HTTP_PORT` (Optional, Default `5000`)
 - `PUBLIC_HTTP_PORT` (Optional, Default `5001`)
+- `PUBLIC_HTTP_HOST`
 - `ETCD_ENDPOINT` (Optional, Default `localhost:2379`)
 - `GITHUB_CLIENT_ID`
 - `GITHUB_CLIENT_SECRET`
@@ -108,9 +109,15 @@ Response:
 - `ok` (Boolean)
 
 ### Webhook
-POST `/api/v0/github/repositories/:name/webhook`  
+POST `/api/v0/github/repositories/:user/:repo/webhook`  
 
-Request: [GitHub Push Event](https://developer.github.com/v3/activity/events/types/#pushevent)
+Request:
+
+- [GitHub Push Event](https://developer.github.com/v3/activity/events/types/#pushevent)
+- `:user` (String)
+	- Repository GitHub user
+- `:repo` (String)
+	- Repository name
 
 Response: 
 

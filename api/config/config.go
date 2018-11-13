@@ -16,6 +16,10 @@ type Config struct {
 	// API requests on
 	PublicHTTPPort int `envconfig:"public_http_port" default:"5001"`
 
+	// PublicHTTPHost is the host name which the public API will be
+	// server under
+	PublicHTTPHost string `envconfig:"public_http_host" required:"true"`
+
 	// EtcdEndpoint is the host and port to a Etcd server
 	EtcdEndpoint string `envconfig:"etcd_endpoint" default:"http://localhost:2379"`
 

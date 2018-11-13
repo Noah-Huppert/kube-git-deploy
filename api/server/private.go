@@ -41,6 +41,7 @@ func NewPrivateServer(ctx context.Context, logger golog.Logger,
 		TrackGHRepoHandler{
 			ctx:    ctx,
 			logger: logger,
+			cfg:    cfg,
 			etcdKV: etcdKV,
 		}).Methods("POST")
 
