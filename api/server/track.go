@@ -101,12 +101,10 @@ func (h TrackGHRepoHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		user, repo)
 
 	// ... Call GitHub hook API
-	rawHookURL := hookURL.String()
-
 	_, _, err = ghClient.Repositories.CreateHook(h.ctx, user, repo,
 		&github.Hook{
 			Config: map[string]interface{}{
-				"url": &rawHookURL,
+				"url": hookURL.String(),
 			},
 		})
 	if err != nil {
