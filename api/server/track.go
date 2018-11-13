@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 
 	"github.com/Noah-Huppert/kube-git-deploy/api/config"
 	"github.com/Noah-Huppert/kube-git-deploy/api/libetcd"
@@ -101,7 +102,7 @@ func (h TrackGHRepoHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		user, repo)
 
 	// ... Call GitHub hook API
-	_, _, err = ghClient.Repositories.CreateHook(h.ctx, user, repo,
+	hook, _, err := ghClient.Repositories.CreateHook(h.ctx, user, repo,
 		&github.Hook{
 			Config: map[string]interface{}{
 				"url": hookURL.String(),
@@ -121,20 +122,35 @@ func (h TrackGHRepoHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Set in Etcd
+	// ... Repo
 	_, err = h.etcdKV.Set(h.ctx,
 		libetcd.GetTrackedGitHubRepoKey(user, repo),
-		fmt.Sprintf("%s/%s", user, repo),
-		&etcd.SetOptions{
-			PrevExist: etcd.PrevNoExist,
-		})
-	if err != nil && err.(etcd.Error).Code != etcd.ErrorCodeNodeExist {
+		fmt.Sprintf("%s/%s", user, repo), nil)
+	if err != nil {
 		h.logger.Errorf("error setting tracked repo name in Etcd: %s",
 			err.Error())
 
 		responder.Respond(http.StatusInternalServerError,
 			map[string]interface{}{
 				"ok":    false,
-				"error": "failed track repository in Etcd",
+				"error": "failed to track repository in Etcd",
+			})
+		return
+	}
+
+	// ... Web hook
+	_, err = h.etcdKV.Set(h.ctx,
+		libetcd.GetTrackedGitRepoWebHookIDKey(user, repo),
+		strconv.FormatInt(*(hook.ID), 10), nil)
+	if err != nil {
+		h.logger.Errorf("error setting tracked repository web hook "+
+			"ID in Etcd: %s", err.Error())
+
+		responder.Respond(http.StatusInternalServerError,
+			map[string]interface{}{
+				"ok": false,
+				"error": "failed to track repository web " +
+					"hook in Etcd",
 			})
 		return
 	}
