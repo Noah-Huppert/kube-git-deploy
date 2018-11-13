@@ -59,18 +59,28 @@ Response:
 - `ok` (Boolean)
 
 ### Track Repository
-POST `/api/v0/github/repositories/:name/track`  
+POST `/api/v0/github/repositories/:user/:repo/track`  
 
-Request: None
+Request: 
+
+- `:user` (String)
+	- Repository GitHub user
+- `:repo` (String)
+	- Repository name
 
 Response:
 
 - `ok` (Boolean)
 
 ### Untrack Repository
-POST `/api/v0/github/repositories/:name/untrack`  
+POST `/api/v0/github/repositories/:user/:repo/untrack`  
 
-Request: None
+Request:
+
+- `:user` (String)
+	- Repository GitHub user
+- `:repo` (String)
+	- Repository name
 
 Response:
 
