@@ -54,8 +54,7 @@ The server provides a public and private API.
 The public API is accessible from the internet.  
 The private API is only accessibly internally in Kubernetes.
 
-## GitHub
-### Get Tracked Repositories
+## Get Tracked Repositories
 GET `/api/v0/github/repositories/tracked`  
 
 **API:** Private
@@ -72,7 +71,7 @@ GET `/api/v0/github/repositories/tracked`
 	- Repository names
 - `ok` (Boolean)
 
-### Track Repository
+## Track Repository
 POST `/api/v0/github/repositories/:user/:repo`  
 
 **API:** Private
@@ -93,7 +92,7 @@ POST `/api/v0/github/repositories/:user/:repo`
 
 - `ok` (Boolean)
 
-### Untrack Repository
+## Untrack Repository
 DELETE `/api/v0/github/repositories/:user/:repo`  
 
 **API:** Private
@@ -114,7 +113,7 @@ DELETE `/api/v0/github/repositories/:user/:repo`
 
 - `ok` (Boolean)
 
-### OAuth Callback
+## OAuth Callback
 GET `/api/v0/github/oauth_callback?code=:code`  
 
 **API:** Private
@@ -131,7 +130,7 @@ GET `/api/v0/github/oauth_callback?code=:code`
 
 - `ok` (Boolean)
 
-### Get GitHub Login URL
+## Get GitHub Login URL
 GET `/api/v0/github/login_url`  
 
 **API:** Private
@@ -148,7 +147,7 @@ GET `/api/v0/github/login_url`
 	- URL to send user to login
 - `ok` (Boolean)
 
-### Webhook
+## Webhook
 POST `/api/v0/github/repositories/:user/:repo/webhook`  
 
 **API:** Public
