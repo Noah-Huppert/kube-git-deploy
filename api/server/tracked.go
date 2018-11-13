@@ -28,7 +28,7 @@ func (h GetTrackedGHReposHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 	responder := NewJSONResponder(h.logger, w)
 
 	// Get tracked repositories
-	resp, err := h.etcdKV.Get(h.ctx, libetcd.KeyTrackedGitHubRepos,
+	resp, err := h.etcdKV.Get(h.ctx, libetcd.KeyDirTrackedGHRepos,
 		&etcd.GetOptions{
 			Recursive: true,
 			Sort:      true,
@@ -46,7 +46,7 @@ func (h GetTrackedGHReposHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	repos := libetcd.TraverseDir(resp.Node)
+	repos := libetcd.TraverseDir(resp.Node, libetcd.KeyTrackedGHRepoName)
 
 	responder.Respond(http.StatusOK, map[string]interface{}{
 		"ok":           true,

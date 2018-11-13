@@ -43,7 +43,7 @@ func main() {
 	}
 
 	// Create initial keys
-	_, err = etcdKV.Set(ctx, libetcd.KeyTrackedGitHubRepos, "",
+	_, err = etcdKV.Set(ctx, libetcd.KeyDirTrackedGHRepos, "",
 		&etcd.SetOptions{
 			Dir:       true,
 			PrevExist: etcd.PrevNoExist,

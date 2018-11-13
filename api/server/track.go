@@ -45,7 +45,7 @@ func (h TrackGHRepoHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Check doesn't already exist in Etcd
 	ok := false
 	_, err := h.etcdKV.Get(h.ctx,
-		libetcd.GetTrackedGitHubRepoKey(user, repo), nil)
+		libetcd.GetTrackedGHRepoNameKey(user, repo), nil)
 
 	if err != nil && !etcd.IsKeyNotFound(err) {
 		h.logger.Errorf("error determining if key exists: %s",
@@ -122,34 +122,35 @@ func (h TrackGHRepoHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Set in Etcd
-	// ... Repo
+	// ... Name
 	_, err = h.etcdKV.Set(h.ctx,
-		libetcd.GetTrackedGitHubRepoKey(user, repo),
+		libetcd.GetTrackedGHRepoNameKey(user, repo),
 		fmt.Sprintf("%s/%s", user, repo), nil)
 	if err != nil {
-		h.logger.Errorf("error setting tracked repo name in Etcd: %s",
+		h.logger.Errorf("error saving tracked repo name in Etcd: %s",
 			err.Error())
 
 		responder.Respond(http.StatusInternalServerError,
 			map[string]interface{}{
-				"ok":    false,
-				"error": "failed to track repository in Etcd",
+				"ok": false,
+				"error": "failed to save repository name " +
+					"in Etcd",
 			})
 		return
 	}
 
-	// ... Web hook
+	// ... Web hook ID
 	_, err = h.etcdKV.Set(h.ctx,
-		libetcd.GetTrackedGitRepoWebHookIDKey(user, repo),
+		libetcd.GetTrackedGHRepoWebHookIDKey(user, repo),
 		strconv.FormatInt(*(hook.ID), 10), nil)
 	if err != nil {
-		h.logger.Errorf("error setting tracked repository web hook "+
+		h.logger.Errorf("error saving tracked repository web hook "+
 			"ID in Etcd: %s", err.Error())
 
 		responder.Respond(http.StatusInternalServerError,
 			map[string]interface{}{
 				"ok": false,
-				"error": "failed to track repository web " +
+				"error": "failed to save repository web " +
 					"hook in Etcd",
 			})
 		return

@@ -7,21 +7,32 @@ import (
 // KeyGitHubAuthToken is the key used to store the GitHub Auth token
 const KeyGitHubAuthToken string = "/github/auth/token"
 
-// KeyTrackedGitHubRepos is the key used to store tracked GitHub repositories
-const KeyTrackedGitHubRepos string = "/github/repositories/tracked"
+// KeyDirTrackedGHRepos is the key used to store tracked GitHub repositories
+const KeyDirTrackedGHRepos string = "/github/repositories/tracked"
 
-// KeyTrackedGitHubReposWebHookIDs is the key of the directory used to store
-// IDs of GitHub web hooks
-const KeyTrackedGitHubReposWebHookIDs string = "/github/repositories/web_hooks/tracked"
+// KeyTrackedGHRepoName is the key placed inside of a GitHub repo directory
+// which stores its name
+const KeyTrackedGHRepoName string = "name"
 
-// GetTrackedGitHubRepoKey formats a key for a tracked GitHub repo
-func GetTrackedGitHubRepoKey(user, repo string) string {
-	return fmt.Sprintf("%s/%s/%s", KeyTrackedGitHubRepos, user, repo)
+// KeyTrackedGHRepoWebHookID is the key placed inside of a GitHub repo
+// directory which stores its web hook ID
+const KeyTrackedGHRepoWebHookID string = "web_hook_id"
+
+// GetTrackedGHRepoDirKey returns the directory key for a tracked
+// GitHub repository
+func GetTrackedGHRepoDirKey(user, repo string) string {
+	return fmt.Sprintf("%s/%s/%s", KeyDirTrackedGHRepos, user, repo)
 }
 
-// GetTrackedGitRepoWebHookIDKey formats a key for a tracked GitHub repo's
+// GetTrackedGHRepoNameKey returns a key to a node which holds a repo's name
+func GetTrackedGHRepoNameKey(user, repo string) string {
+	return fmt.Sprintf("%s/%s/%s/%s", KeyDirTrackedGHRepos, user, repo,
+		KeyTrackedGHRepoName)
+}
+
+// GetTrackedGHRepoWebHookIDKey returns a key to a node which holds a repo's
 // web hook ID
-func GetTrackedGitRepoWebHookIDKey(user, repo string) string {
-	return fmt.Sprintf("%s/%s/%s", KeyTrackedGitHubReposWebHookIDs, user,
-		repo)
+func GetTrackedGHRepoWebHookIDKey(user, repo string) string {
+	return fmt.Sprintf("%s/%s/%s/%s", KeyDirTrackedGHRepos, user, repo,
+		KeyTrackedGHRepoWebHookID)
 }
