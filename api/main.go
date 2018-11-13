@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/Noah-Huppert/kube-git-deploy/api/config"
+	"github.com/Noah-Huppert/kube-git-deploy/api/libetcd"
 	"github.com/Noah-Huppert/kube-git-deploy/api/server"
 
 	"github.com/Noah-Huppert/golog"
@@ -39,6 +40,17 @@ func main() {
 	_, err = etcdKV.Set(ctx, "/ping", "pong", nil)
 	if err != nil {
 		logger.Fatalf("error testing Etcd connection: %s", err.Error())
+	}
+
+	// Create initial keys
+	_, err = etcdKV.Set(ctx, libetcd.KeyTrackedGitHubRepos, "",
+		&etcd.SetOptions{
+			Dir:       true,
+			PrevExist: etcd.PrevNoExist,
+		})
+	if err != nil {
+		logger.Fatalf("error creating initial empty tracked GitHub "+
+			"repositories key: %s", err.Error())
 	}
 
 	// Run HTTP server

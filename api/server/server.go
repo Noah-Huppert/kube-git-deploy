@@ -58,6 +58,13 @@ func (s Server) Run() error {
 			cfg:    s.cfg,
 		})
 
+	router.Handle("/api/v0/github/tracked",
+		GetTrackedGHReposHandler{
+			ctx:    s.ctx,
+			logger: s.logger,
+			etcdKV: s.etcdKV,
+		})
+
 	// Create server
 	server := http.Server{
 		Addr:    fmt.Sprintf(":%d", s.cfg.HTTPPort),
