@@ -59,6 +59,7 @@ Response:
 		- Indicates if server is automatically deploying repository
 	- `name` (String)
 		- Slug
+- `ok` (Boolean)
 
 ### Track Repository
 POST `/api/v0/github/repositories/:name/track`  
@@ -85,6 +86,17 @@ Request: None
 
 Response: 
 
+- `ok` (Boolean)
+
+### Get GitHub Login URL
+GET `/api/v0/github/login_url`  
+
+Request: None
+
+Response:
+
+- `login_url` (String)
+	- URL to send user to login
 - `ok` (Boolean)
 
 ### Webhook

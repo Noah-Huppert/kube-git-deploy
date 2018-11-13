@@ -12,7 +12,7 @@ type Config struct {
 	HTTPPort int `envconfig:"http_port" default:"5000"`
 
 	// EtcdEndpoint is the host and port to a Etcd server
-	EtcdEndpoint string `envconfig:"etcd_endpoint" default:"localhost:2379"`
+	EtcdEndpoint string `envconfig:"etcd_endpoint" default:"http://localhost:2379"`
 
 	// GitHubClientID is the ID of the GitHub API app
 	GitHubClientID string `envconfig:"github_client_id" required:"true"`

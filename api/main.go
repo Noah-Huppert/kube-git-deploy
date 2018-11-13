@@ -34,13 +34,19 @@ func main() {
 		logger.Fatalf("error connecting to Etcd: %s", err.Error())
 	}
 
-	//etcdKV := etcdClient.NewKeysAPI(etcdClient)
-	_ = etcd.NewKeysAPI(etcdClient)
+	etcdKV := etcd.NewKeysAPI(etcdClient)
+
+	_, err = etcdKV.Set(ctx, "/ping", "pong", nil)
+	if err != nil {
+		logger.Fatalf("error testing Etcd connection: %s", err.Error())
+	}
 
 	// Run HTTP server
 	logger.Info("Starting HTTP server")
 
-	err = server.RunServer(ctx, cfg)
+	srv := server.NewServer(ctx, logger, cfg, etcdKV)
+
+	err = srv.Run()
 	if err != nil {
 		logger.Fatalf("error starting HTTP server: %s", err.Error())
 	}

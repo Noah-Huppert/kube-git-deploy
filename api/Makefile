@@ -11,6 +11,8 @@ etcd:
 	mkdir -p "${ETCD_DATA_DIR}"
 	docker run \
 		--net host \
+		--rm \
+		-it \
 		-p 2379:2379 \
 		-p 2380:2380 \
 		--volume=${ETCD_DATA_DIR}:/etcd-data \
