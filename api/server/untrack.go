@@ -43,7 +43,10 @@ func (h UntrackGHRepoHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	found := true
 
 	_, err := h.etcdKV.Get(h.ctx,
-		libetcd.GetTrackedGHRepoNameKey(user, repo), nil)
+		libetcd.GetTrackedGHRepoNameKey(user, repo),
+		&etcd.GetOptions{
+			Quorum: true,
+		})
 
 	if err != nil && !etcd.IsKeyNotFound(err) {
 		h.logger.Errorf("error determining if key exists: %s",
@@ -70,7 +73,10 @@ func (h UntrackGHRepoHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 
 	// Get GitHub hook ID
 	resp, err := h.etcdKV.Get(h.ctx,
-		libetcd.GetTrackedGHRepoWebHookIDKey(user, repo), nil)
+		libetcd.GetTrackedGHRepoWebHookIDKey(user, repo),
+		&etcd.GetOptions{
+			Quorum: true,
+		})
 	if err != nil {
 		h.logger.Errorf("error retrieving GitHub hook ID from "+
 			"Etcd: %s", err.Error())

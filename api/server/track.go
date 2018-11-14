@@ -45,7 +45,10 @@ func (h TrackGHRepoHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Check doesn't already exist in Etcd
 	ok := false
 	_, err := h.etcdKV.Get(h.ctx,
-		libetcd.GetTrackedGHRepoNameKey(user, repo), nil)
+		libetcd.GetTrackedGHRepoNameKey(user, repo),
+		&etcd.GetOptions{
+			Quorum: true,
+		})
 
 	if err != nil && !etcd.IsKeyNotFound(err) {
 		h.logger.Errorf("error determining if key exists: %s",

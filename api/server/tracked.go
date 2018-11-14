@@ -32,6 +32,7 @@ func (h GetTrackedGHReposHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 		&etcd.GetOptions{
 			Recursive: true,
 			Sort:      true,
+			Quorum:    true,
 		})
 	if err != nil {
 		h.logger.Errorf("error getting tracked GitHub repos from "+

@@ -14,7 +14,10 @@ import (
 // NewClient makes a new GitHub client with authentication
 func NewClient(ctx context.Context, etcdKV etcd.KeysAPI) (*github.Client, error) {
 	// Get GitHub auth token from Etcd
-	resp, err := etcdKV.Get(ctx, libetcd.KeyGitHubAuthToken, nil)
+	resp, err := etcdKV.Get(ctx, libetcd.KeyGitHubAuthToken,
+		&etcd.GetOptions{
+			Quorum: true,
+		})
 	if err != nil {
 		return nil, fmt.Errorf("error retrieving GitHub auth token"+
 			" from Etcd: %s", err.Error())
