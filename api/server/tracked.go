@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/Noah-Huppert/kube-git-deploy/api/libetcd"
+	"github.com/Noah-Huppert/kube-git-deploy/api/models"
 
 	"github.com/Noah-Huppert/golog"
 	etcd "go.etcd.io/etcd/client"
@@ -28,12 +28,7 @@ func (h GetTrackedGHReposHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 	responder := NewJSONResponder(h.logger, w)
 
 	// Get tracked repositories
-	resp, err := h.etcdKV.Get(h.ctx, libetcd.KeyDirTrackedGHRepos,
-		&etcd.GetOptions{
-			Recursive: true,
-			Sort:      true,
-			Quorum:    true,
-		})
+	repos, err := models.GetAllRepositories(h.ctx, h.etcdKV)
 	if err != nil {
 		h.logger.Errorf("error getting tracked GitHub repos from "+
 			"Etcd: %s", err.Error())
@@ -46,8 +41,6 @@ func (h GetTrackedGHReposHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 			})
 		return
 	}
-
-	repos := libetcd.TraverseDir(resp.Node, libetcd.KeyTrackedGHRepoName)
 
 	responder.Respond(http.StatusOK, map[string]interface{}{
 		"ok":           true,

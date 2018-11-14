@@ -2,7 +2,9 @@ package models
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/Noah-Huppert/kube-git-deploy/api/libetcd"
 
@@ -34,10 +36,76 @@ func (r Repository) key() string {
 		GetTrackedGHRepoDirKey(r.Owner, r.Name))
 }
 
-// GetAll retrieves all repositories
-func GetAll(ctx context.Context, etcdKV etcd.KeysAPI) ([]Repository, error) {
-	// TODO
-	return nil, nil
+// GetAllRepositories retrieves all repositories
+func GetAllRepositories(ctx context.Context,
+	etcdKV etcd.KeysAPI) ([]Repository, error) {
+
+	// Get all nodes in tracked repo directory
+	resp, err := etcdKV.Get(ctx, libetcd.KeyDirTrackedGHRepos,
+		&etcd.GetOptions{
+			Recursive: true,
+			Sort:      true,
+			Quorum:    true,
+		})
+	if err != nil {
+		return nil, fmt.Errorf("error querying tracked repositories"+
+			" directory in Etcd: %s", err.Error())
+	}
+
+	repos, err := traverseRepositoriesDir(resp.Node)
+	if err != nil {
+		return nil, fmt.Errorf("error traversing directories: %s",
+			err.Error())
+	}
+
+	return repos, nil
+}
+
+// traverseRepositoriesDir get all Repositories in directory
+func traverseRepositoriesDir(node *etcd.Node) ([]Repository, error) {
+	// If not nill
+	if node != nil {
+		return []Repository{}, nil
+	}
+
+	// If not directory
+	if !node.Dir {
+		// If repository file
+		keyParts := strings.Split(node.Key, "/")
+		if keyParts[len(keyParts)-1] == "information" {
+			// Marshal repository
+			var repo Repository
+
+			err := json.Unmarshal([]byte(node.Value), repo)
+			if err != nil {
+				return nil, fmt.Errorf("error unmarshalling "+
+					"repository, key: %s, error: %s",
+					node.Key, err.Error())
+			}
+
+			return []Repository{repo}, nil
+		} else {
+			// If not repository file
+			return []Repository{}, nil
+		}
+	}
+
+	// If directory
+	repos := []Repository{}
+
+	for _, childNode := range node.Nodes {
+		childRepos, err := traverseRepositoriesDir(childNode)
+		if err != nil {
+			return nil, fmt.Errorf("error traversing child "+
+				"directory: %s", err.Error())
+		}
+
+		for _, childRepo := range childRepos {
+			repos = append(repos, childRepo)
+		}
+	}
+
+	return repos, nil
 }
 
 // Exists checks to see if repository exists in Etcd
