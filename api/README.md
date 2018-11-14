@@ -249,49 +249,10 @@ Data is stored in Etcd.
 Some keys hold regular string values. While other keys hold serialized
 JSON models.
 
-## Key Structure
 Etcd stores data in a tree like a file system.
 
 - `/github/auth` (Directory)
 	- `/token` (String): Holds a user's GitHub access token
 	- `/repositories/tracked/[USER]/[REPO]` (Directory)
-		- `/information` ([Repository Model](#repository-model))
-		- `/jobs/[ID]` ([Job Model](#job-model))
-
-## Repository Model
-Tracked GitHub repository information.  
-
-Fields:
-
-- `owner` (String): GitHub repository owner
-- `name` (String): GitHub repository name
-- `web_hook_id` (Integer): ID of GitHub web socket
-
-## Job Model
-Repository build and deploy job.
-
-See [Repository Configuration File](#repository-configuration-file) for more 
-details on the structure of ajob.
-
-Fields:
-
-- `id` (Integer): ID of job
-- `modules` (Array[Job Module]): Modules in repository
-	- `configuration` (Object): Raw module configuration
-		- `docker` (Object): Docker configuration with keys from
-			[Step Definitions](#step-definitions)
-		- `helm` (Object): Helm configuration with keys from 
-			[Step Definitions](#step-definitions)
-	- `state` (Object): Steps in module
-		- `{docker,helm}`
-			- `status` (String): Status of step, allowed values:
-				- `waiting`: Initiated but not started
-				- `running`: Running
-				- `success`: Successfully completed
-				- `error`: Completed but failed
-			- `output` (String): Raw output of step
-- `metadata` (Object): Information about event which triggered job
-	- `owner` (String): GitHub repository owner
-	- `name` (String): GitHub repository name
-	- `branch` (String): Name of branch of commit which triggered job
-	- `commit_sha` (String): Git commit sha which triggered job
+		- `/information` ([Repository Model](https://godoc.org/github.com/Noah-Huppert/kube-git-deploy/api/models#Repository))
+		- `/jobs/[ID]` ([Job Model](https://godoc.org/github.com/Noah-Huppert/kube-git-deploy/api/models#Job))
