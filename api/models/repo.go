@@ -23,7 +23,7 @@ type Repository struct {
 
 // key returns the Etcd key the repository should be stored in
 func (r *Repository) key() string {
-	return fmt.Sprintf("%s/%s/%s", libetcd.KeyDirTrackedGHRepos, r.Owner,
+	return fmt.Sprintf("%s/%s/%s/information", libetcd.KeyDirTrackedGHRepos, r.Owner,
 		r.Name)
 }
 
