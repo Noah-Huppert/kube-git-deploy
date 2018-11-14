@@ -9,8 +9,8 @@ import (
 	etcd "go.etcd.io/etcd/client"
 )
 
-// StoreJSON saves a struct in JSON form under a key in Etcd
-func StoreJSON(ctx context.Context, etcdKV etcd.KeysAPI, key string,
+// SetJSON saves a struct in JSON form under a key in Etcd
+func SetJSON(ctx context.Context, etcdKV etcd.KeysAPI, key string,
 	value interface{}) error {
 
 	// Marshal JSON
@@ -29,9 +29,9 @@ func StoreJSON(ctx context.Context, etcdKV etcd.KeysAPI, key string,
 	return nil
 }
 
-// LoadJSON retrieves a key from Etcd and decodes the value as JSON into
+// GetJSON retrieves a key from Etcd and decodes the value as JSON into
 // a struct
-func LoadJSON(ctx context.Context, etcdKV etcd.KeysAPI, key string,
+func GetJSON(ctx context.Context, etcdKV etcd.KeysAPI, key string,
 	result interface{}) error {
 
 	// Load value from Etcd
