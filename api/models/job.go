@@ -15,7 +15,7 @@ import (
 // Job holds repository build deploy job information
 type Job struct {
 	// ID holds the unique ID of the job
-	ID int `json:"id"`
+	ID int64 `json:"id"`
 
 	// Modules holds information about modules defined in repository
 	// configuration file
@@ -27,7 +27,7 @@ type Job struct {
 
 func GetTrackedGHRepoJobsDirKey(user, repo string) string {
 	return fmt.Sprintf("%s/jobs",
-		GetTrackedGHRepoDirKey(j.Metadata.Owner, j.Metadata.Name))
+		GetTrackedGHRepoDirKey(user, repo))
 }
 
 // key returns the Etcd key a job should be stored in
@@ -59,11 +59,17 @@ func (j *Job) Create(ctx context.Context, etcdKV etcd.KeysAPI) error {
 			"was nil")
 	}
 
-	highestJobID := -1
+	var highestJobID int64 = -1
 	for _, node := range resp.Node.Nodes {
 		keyParts := strings.Split(node.Key, "/")
+		jobIDStr := keyParts[len(keyParts)-1]
 
-		jobID := strconv.ParseInt(keyParts[len(keyParts)-1], 10, 64)
+		jobID, err := strconv.ParseInt(jobIDStr, 10,
+			64)
+		if err != nil {
+			return fmt.Errorf("error parsing Job ID to int, "+
+				"job ID: %s, error: %s", jobIDStr, err.Error())
+		}
 
 		if jobID > highestJobID {
 			highestJobID = jobID

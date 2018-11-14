@@ -18,7 +18,7 @@ type Repository struct {
 	Name string `json:"name"`
 
 	// WebHookID holds the ID of the created GitHub repository web hook
-	WebHookID int `json:"web_hook_id"`
+	WebHookID int64 `json:"web_hook_id"`
 }
 
 // GetTrackedGHRepoDirKey returns the directory key for a tracked
@@ -30,15 +30,39 @@ func GetTrackedGHRepoDirKey(user, repo string) string {
 
 // key returns the Etcd key the repository should be stored in
 func (r Repository) key() string {
-	return fmt.Sprintf("%s/%s/information",
+	return fmt.Sprintf("%s/information",
 		GetTrackedGHRepoDirKey(r.Owner, r.Name))
+}
+
+// GetAll retrieves all repositories
+func GetAll(ctx context.Context, etcdKV etcd.KeysAPI) ([]Repository, error) {
+	// TODO
+	return nil, nil
+}
+
+// Exists checks to see if repository exists in Etcd
+func (r Repository) Exists(ctx context.Context,
+	etcdKV etcd.KeysAPI) (bool, error) {
+
+	_, err := etcdKV.Get(ctx, r.key(), &etcd.GetOptions{
+		Quorum: true,
+	})
+
+	if err != nil && !etcd.IsKeyNotFound(err) {
+		return false, fmt.Errorf("error querying Etcd for "+
+			"repository: %s", err.Error())
+	} else if err != nil && etcd.IsKeyNotFound(err) {
+		return false, nil
+	}
+
+	return true, nil
 }
 
 // Creates creates the directory structure for a Repository in Etcd and
 // Sets a directory. Does not work if Repository was previously saved.
 func (r Repository) Create(ctx context.Context, etcdKV etcd.KeysAPI) error {
 	// Create top level directory
-	dirName := GetTrackedGHRepoDirKey(repo.Owner, repo.Name)
+	dirName := GetTrackedGHRepoDirKey(r.Owner, r.Name)
 
 	_, err := etcdKV.Set(ctx, dirName, "", &etcd.SetOptions{
 		Dir:       true,
@@ -64,7 +88,7 @@ func (r Repository) Create(ctx context.Context, etcdKV etcd.KeysAPI) error {
 	}
 
 	// Save repository in directory
-	err = repo.Set(ctx, etcdKV)
+	err = r.Set(ctx, etcdKV)
 
 	if err != nil {
 		return fmt.Errorf("error saving repository: %s", err.Error())

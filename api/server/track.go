@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"strconv"
 
 	"github.com/Noah-Huppert/kube-git-deploy/api/config"
-	"github.com/Noah-Huppert/kube-git-deploy/api/libetcd"
 	"github.com/Noah-Huppert/kube-git-deploy/api/libgh"
+	"github.com/Noah-Huppert/kube-git-deploy/api/models"
 
 	"github.com/Noah-Huppert/golog"
 	"github.com/google/go-github/github"
@@ -40,32 +39,31 @@ func (h TrackGHRepoHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Get URL parameters
 	vars := mux.Vars(r)
 	user := vars["user"]
-	repo := vars["repo"]
+	name := vars["repo"]
+
+	// Create repo model
+	repo := models.Repository{
+		Owner: user,
+		Name:  name,
+	}
 
 	// Check doesn't already exist in Etcd
-	ok := false
-	_, err := h.etcdKV.Get(h.ctx,
-		libetcd.GetTrackedGHRepoNameKey(user, repo),
-		&etcd.GetOptions{
-			Quorum: true,
-		})
-
-	if err != nil && !etcd.IsKeyNotFound(err) {
-		h.logger.Errorf("error determining if key exists: %s",
+	exists, err := repo.Exists(h.ctx, h.etcdKV)
+	if err != nil {
+		h.logger.Errorf("error determining if repository exists: %s",
 			err.Error())
 
 		responder.Respond(http.StatusInternalServerError,
 			map[string]interface{}{
 				"ok": false,
-				"error": "error determining if repository is" +
-					"already being tracked",
+				"error": "error determining if repository " +
+					"is already being tracked",
 			})
+
 		return
-	} else if err != nil && etcd.IsKeyNotFound(err) {
-		ok = true
 	}
 
-	if !ok {
+	if exists {
 		responder.Respond(http.StatusConflict, map[string]interface{}{
 			"ok":    false,
 			"error": "repository already being tracked",
@@ -108,10 +106,10 @@ func (h TrackGHRepoHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	hookURL.Path = fmt.Sprintf("/api/v0/github/repositories/%s/%s/web_hook",
-		user, repo)
+		user, name)
 
 	// ... Call GitHub hook API
-	hook, _, err := ghClient.Repositories.CreateHook(h.ctx, user, repo,
+	hook, _, err := ghClient.Repositories.CreateHook(h.ctx, user, name,
 		&github.Hook{
 			Config: map[string]interface{}{
 				"url":          hookURL.String(),
@@ -119,6 +117,7 @@ func (h TrackGHRepoHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				"insecure_ssl": noSSLVerify,
 			},
 		})
+
 	if err != nil {
 		h.logger.Errorf("error creating web hook with GitHub API: %s",
 			err.Error())
@@ -132,38 +131,21 @@ func (h TrackGHRepoHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Set in Etcd
-	// ... Name
-	_, err = h.etcdKV.Set(h.ctx,
-		libetcd.GetTrackedGHRepoNameKey(user, repo),
-		fmt.Sprintf("%s/%s", user, repo), nil)
+	// ... Save web hook ID in repository
+	repo.WebHookID = *(hook.ID)
+
+	// Save repository
+	err = repo.Create(h.ctx, h.etcdKV)
 	if err != nil {
-		h.logger.Errorf("error saving tracked repo name in Etcd: %s",
+		h.logger.Errorf("error saving repository to Etcd: %s",
 			err.Error())
 
 		responder.Respond(http.StatusInternalServerError,
 			map[string]interface{}{
-				"ok": false,
-				"error": "failed to save repository name " +
-					"in Etcd",
+				"ok":    false,
+				"error": "error saving repository to Etcd",
 			})
-		return
-	}
 
-	// ... Web hook ID
-	_, err = h.etcdKV.Set(h.ctx,
-		libetcd.GetTrackedGHRepoWebHookIDKey(user, repo),
-		strconv.FormatInt(*(hook.ID), 10), nil)
-	if err != nil {
-		h.logger.Errorf("error saving tracked repository web hook "+
-			"ID in Etcd: %s", err.Error())
-
-		responder.Respond(http.StatusInternalServerError,
-			map[string]interface{}{
-				"ok": false,
-				"error": "failed to save repository web " +
-					"hook in Etcd",
-			})
 		return
 	}
 

@@ -46,7 +46,7 @@ func GetJSON(ctx context.Context, etcdKV etcd.KeysAPI, key string,
 	}
 
 	// Unmarshal
-	err = json.Unmarshal(byte[Node.Value], result)
+	err = json.Unmarshal([]byte(resp.Node.Value), result)
 	if err != nil {
 		return fmt.Errorf("error unmarshalling JSON value: %s",
 			err.Error())
