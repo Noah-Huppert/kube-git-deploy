@@ -32,8 +32,8 @@ func (r Repository) Set(ctx context.Context, etcdKV etcd.KeysAPI) error {
 	return libetcd.SetJSON(ctx, etcdKV, r.key(), r)
 }
 
-// Get retrieves a repository from Etcd. The Owner and Name fields must be set
-// for this method to work properly
+// Get retrieves a repository from Etcd. The `Owner` and `Name` fields must be
+// set for this method to work properly
 func (r *Repository) Get(ctx context.Context, etcdKV etcd.KeysAPI) error {
 	return libetcd.GetJSON(ctx, etcdKV, r.key(), r)
 }
