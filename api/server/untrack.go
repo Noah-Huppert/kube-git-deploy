@@ -3,11 +3,10 @@ package server
 import (
 	"context"
 	"net/http"
-	"strconv"
 
 	"github.com/Noah-Huppert/kube-git-deploy/api/config"
-	"github.com/Noah-Huppert/kube-git-deploy/api/libetcd"
 	"github.com/Noah-Huppert/kube-git-deploy/api/libgh"
+	"github.com/Noah-Huppert/kube-git-deploy/api/models"
 
 	"github.com/Noah-Huppert/golog"
 	"github.com/gorilla/mux"
@@ -37,19 +36,18 @@ func (h UntrackGHRepoHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	// Get URL parameters
 	vars := mux.Vars(r)
 	user := vars["user"]
-	repo := vars["repo"]
+	name := vars["repo"]
 
-	// Check doesn't already exist in Etcd
-	found := true
+	// Create repository model
+	repo := models.Repository{
+		Owner: user,
+		Name:  name,
+	}
 
-	_, err := h.etcdKV.Get(h.ctx,
-		libetcd.GetTrackedGHRepoNameKey(user, repo),
-		&etcd.GetOptions{
-			Quorum: true,
-		})
-
-	if err != nil && !etcd.IsKeyNotFound(err) {
-		h.logger.Errorf("error determining if key exists: %s",
+	// Check repository exists
+	found, err := repo.Exists(h.ctx, h.etcdKV)
+	if err != nil {
+		h.logger.Errorf("error determining if repository exists: %s",
 			err.Error())
 
 		responder.Respond(http.StatusInternalServerError,
@@ -59,8 +57,6 @@ func (h UntrackGHRepoHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 					"being tracked",
 			})
 		return
-	} else if err != nil && etcd.IsKeyNotFound(err) {
-		found = false
 	}
 
 	if !found {
@@ -72,36 +68,16 @@ func (h UntrackGHRepoHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	}
 
 	// Get GitHub hook ID
-	resp, err := h.etcdKV.Get(h.ctx,
-		libetcd.GetTrackedGHRepoWebHookIDKey(user, repo),
-		&etcd.GetOptions{
-			Quorum: true,
-		})
+	err = repo.Get(h.ctx, h.etcdKV)
 	if err != nil {
-		h.logger.Errorf("error retrieving GitHub hook ID from "+
-			"Etcd: %s", err.Error())
+		h.logger.Errorf("error retrieving repository from Etcd: %s",
+			err.Error())
 
 		responder.Respond(http.StatusInternalServerError,
 			map[string]interface{}{
 				"ok": false,
-				"error": "error retrieving web hook ID " +
+				"error": "error retrieving repository " +
 					"from Etcd",
-			})
-		return
-	}
-	webHookIDStr := resp.Node.Value
-
-	// Parse to int
-	webHookID, err := strconv.ParseInt(webHookIDStr, 10, 64)
-	if err != nil {
-		h.logger.Errorf("error parsing retrieved GitHub hook ID into "+
-			"integer: %s", err.Error())
-
-		responder.Respond(http.StatusInternalServerError,
-			map[string]interface{}{
-				"ok": false,
-				"error": "failed to interpret retrieve web " +
-					"hook ID",
 			})
 		return
 	}
@@ -121,7 +97,8 @@ func (h UntrackGHRepoHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	}
 
 	// ... Call GitHub hook API
-	_, err = ghClient.Repositories.DeleteHook(h.ctx, user, repo, webHookID)
+	_, err = ghClient.Repositories.DeleteHook(h.ctx, user, name,
+		repo.WebHookID)
 	if err != nil {
 		h.logger.Errorf("error deleting web hook with GitHub API: %s",
 			err.Error())
@@ -136,21 +113,15 @@ func (h UntrackGHRepoHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	}
 
 	// Delete Etcd directory
-	_, err = h.etcdKV.Delete(h.ctx,
-		libetcd.GetTrackedGHRepoDirKey(user, repo),
-		&etcd.DeleteOptions{
-			Recursive: true,
-			Dir:       true,
-		})
+	err = repo.Delete(h.ctx, h.etcdKV)
 	if err != nil {
-		h.logger.Errorf("error deleting tracked GitHub repo Etcd"+
-			"directory: %s", err.Error())
+		h.logger.Errorf("error deleting repository in Etcd",
+			err.Error())
 
 		responder.Respond(http.StatusInternalServerError,
 			map[string]interface{}{
-				"ok": false,
-				"error": "failed to delete tracked GitHub " +
-					"repository in Etcd",
+				"ok":    false,
+				"error": "error deleting repository in Etcd",
 			})
 		return
 	}

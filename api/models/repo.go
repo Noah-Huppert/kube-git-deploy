@@ -175,3 +175,19 @@ func (r Repository) Set(ctx context.Context, etcdKV etcd.KeysAPI) error {
 func (r *Repository) Get(ctx context.Context, etcdKV etcd.KeysAPI) error {
 	return libetcd.GetJSON(ctx, etcdKV, r.key(), r)
 }
+
+// Delete removes a repository and all of its jobs from Etcd
+func (r Repository) Delete(ctx context.Context, etcdKV etcd.KeysAPI) error {
+	_, err := etcdKV.Delete(ctx, GetTrackedGHRepoDirKey(r.Owner, r.Name),
+		&etcd.DeleteOptions{
+			Recursive: true,
+			Dir:       true,
+		})
+
+	if err != nil {
+		return fmt.Errorf("error deleting repository directory: %s",
+			err.Error())
+	}
+
+	return nil
+}
