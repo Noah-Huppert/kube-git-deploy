@@ -33,8 +33,8 @@ func (j Job) Set(ctx context.Context, etcdKV etcd.KeysAPI) error {
 	return libetcd.SetJSON(ctx, etcdKV, j.key(), j)
 }
 
-// Get retrieves a job from Etcd. The `ID`, `Metadata.Owner`, and
-// `Metadata.Name` fields must be set for method to work properly.
+// Get retrieves a job from Etcd. The ID, Metadata.Owner, and
+// Metadata.Name fields must be set for method to work properly.
 func (j Job) Get(ctx context.Context, etcdKV etcd.KeysAPI) error {
 	return libetcd.GetJSON(ctx, etcdKV, j.key(), j)
 }
