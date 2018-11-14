@@ -8,6 +8,8 @@ Kube Git Deploy API.
 	- [Dependencies](#dependencies)
 	- [Local Etcd](#local-etcd)
 	- [GitHub Application](#github-application)
+- [User Manual](#user-manual)
+	- [Repository Configuration File](#repository-configuration-file)
 - [Endpoints](#endpoints)
 - [Data](#data)
 
@@ -57,6 +59,68 @@ Create a GitHub application with an authorization callback URL of:
 
 ```
 http://localhost:5000/api/v0/github/oauth_callback
+```
+
+# User Guide
+## Repository Configuration File
+### Structure Overview
+Anytime code is pushed to a repository Kube Git Deploy will run a job.  
+
+The behavior of jobs is defined by a file in the repository root named 
+`kube-git-deploy.toml`.
+
+A file contains modules. Modules are individual items which can be built
+and deployed.
+
+Each module contains steps. Steps define the actions a job performs. 
+
+There are two types of steps: `docker` and `helm`.  
+
+If a module defines a Docker and Helm step, the Docker step will be
+executed first.
+
+### Step Definitions
+**Docker:**
+- `directory` (String): Directory Dockerfile is located in
+- `tag` (String): Docker image tag 
+
+**Helm:**  
+- `chart` (String): Helm chart to deploy
+	- If chart is located in repository value should be in form: `repository@chart`
+	- Otherwise should be local path to chart
+
+### Templating
+Go templating can be used inside the file. The following data can be access:
+
+ - `git` (Map)
+	- `branch` (String)
+		- Commit branch
+	- `sha` (String)
+		- Commit SHA
+
+
+### Syntax
+Modules are TOML sections. Steps are module sub-sections. Step parameters are 
+key value pairs.
+
+Example file:
+
+```toml
+[api]
+[[docker]]
+directory = "./api"
+tag = "noahhuppert/example-api:{{ .git.sha }}"
+
+[[helm]]
+chart = "./api/deploy"
+
+[ui]
+[[docker]]
+directory = "./ui"
+tag = "noahhuppert/example-ui:{{ .git.sha }}"
+
+[[helm]]
+chart = "./ui/deploy"
 ```
 
 # Endpoints
@@ -180,30 +244,42 @@ POST `/api/v0/github/repositories/:user/:repo/web_hook`
 - `ok` (Boolean)
 
 # Data
-Data is stored in Etcd.
+Data is stored in Etcd.  
 
-## Tree Overview
-Etcd stores data in a directory like structure.  
+Some keys hold regular string values. While other keys hold serialized
+JSON models.
 
-In the diagram below a key is a directory if it has a **D:** before its key.  
-A key is a value file if it has a **V:** before its key.
+## Key Structure
+Etcd stores data in a tree like a file system.
 
-- **D:** `/github/auth`
-	- **V:** `/token`: Holds a user's GitHub access token
-	- **D:** `/repositories/tracked/[USER]/[REPO]`
-		- **V:** `/name`: Name of tracked GitHub repository, in standard 
-			`username/repo-name` GitHub format
-		- **V:** `/web_hook_id`: ID of GitHub repository web hook
-		- **D:** `/jobs/[ID]`
-			- **V:** `/status`: Current status of job, see [Job Status](#job-status)
-			- **D:** `/modules/[XXX]_[MODULE]/{docker,helm}`
-				- **V:** `/status`: Status of build, see [Job Status](#job-status)
-				- **V:** `/output`: Build output
+- `/github/auth` (Directory)
+	- `/token` (String): Holds a user's GitHub access token
+	- `/repositories/tracked/[USER]/[REPO]` (Directory)
+		- `/information` ([Repository Model](#repository-model))
+		- `/jobs/[ID]` ([Job Model](#job-model))
 
-## Job Status
-Jobs indicate status with the following values:
+## Repository Model
+Tracked GitHub repository information.  
 
-- `waiting`: Initiated but not started
-- `running`: Running
-- `done`: Successfully completed
-- `error`: Completed but failed
+Fields:
+
+- `slug` (String): Name of repository in `username/repo-name` format
+- `web_hook_id` (Integer): ID of GitHub web socket
+
+## Job Model
+Repository build and deploy job.
+
+See [Repository Configuration File](#repository-configuration-file) for more 
+details on the structure of ajob.
+
+Fields:
+
+- `modules` (Array[Job Module]): Modules in repository
+	- `configuration` (Object): Raw module configuration
+	- `steps` (Array[Job Module Step]): Steps in module
+		- `status` (String): Status of step, allowed values:
+			- `waiting`: Initiated but not started
+			- `running`: Running
+			- `success`: Successfully completed
+			- `error`: Completed but failed
+		- `output` (String): Raw output of step
