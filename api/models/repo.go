@@ -64,7 +64,7 @@ func GetAllRepositories(ctx context.Context,
 // traverseRepositoriesDir get all Repositories in directory
 func traverseRepositoriesDir(node *etcd.Node) ([]Repository, error) {
 	// If not nill
-	if node != nil {
+	if node == nil {
 		return []Repository{}, nil
 	}
 
@@ -76,7 +76,7 @@ func traverseRepositoriesDir(node *etcd.Node) ([]Repository, error) {
 			// Marshal repository
 			var repo Repository
 
-			err := json.Unmarshal([]byte(node.Value), repo)
+			err := json.Unmarshal([]byte(node.Value), &repo)
 			if err != nil {
 				return nil, fmt.Errorf("error unmarshalling "+
 					"repository, key: %s, error: %s",
