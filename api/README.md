@@ -103,6 +103,8 @@ Go templating can be used inside the file. The following data can be access:
 Modules are TOML sections. Steps are module sub-sections. Step parameters are 
 key value pairs.
 
+### Example
+#### Basic Example
 Example file:
 
 ```toml
@@ -122,6 +124,36 @@ tag = "noahhuppert/example-ui:{{ .git.sha }}"
 [[helm]]
 chart = "./ui/deploy"
 ```
+
+This will create 2 modules named `api` and `ui`.  
+
+The `api` module will have 2 steps. The Docker step will build a Docker an
+image in the `./api` directory and tag it with
+`noahhuppert/example-api:{{ .git.sha }}`.
+
+Notice how the Docker tag uses Go templating to get the Git commit's sha.  
+
+The Helm step will deploy a Helm chart in `./api/deploy`.  
+
+The `ui` module is similar.
+
+#### Template Example
+Example file:
+
+```toml
+{{ if .git.branch == "master" }}
+[api]
+[[docker]]
+directory = "."
+tag = "noahhuppert/example-api:{{ .git.sha }}
+
+[[helm]]
+chart = "./deploy"
+{{ end }}
+```
+
+This will define an `api` module, which will only be deployed on the
+master branch.
 
 # Endpoints
 The server provides a public and private API.  
