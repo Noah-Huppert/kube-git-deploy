@@ -9,8 +9,8 @@ import (
 	etcd "go.etcd.io/etcd/client"
 )
 
-// Repository contains tracked GitHub repository information
-type Repository struct {
+// RepositoryInfo contains tracked GitHub repository information
+type RepositoryInfo struct {
 	// Owner holds the GitHub username of the repository owner
 	Owner string `json:"owner"`
 
@@ -22,18 +22,18 @@ type Repository struct {
 }
 
 // key returns the Etcd key the repository should be stored in
-func (r *Repository) key() string {
+func (r *RepositoryInfo) key() string {
 	return fmt.Sprintf("%s/%s/%s/information", libetcd.KeyDirTrackedGHRepos, r.Owner,
 		r.Name)
 }
 
 // Set stores a repository in Etcd
-func (r Repository) Set(ctx context.Context, etcdKV etcd.KeysAPI) error {
+func (r RepositoryInfo) Set(ctx context.Context, etcdKV etcd.KeysAPI) error {
 	return libetcd.SetJSON(ctx, etcdKV, r.key(), r)
 }
 
-// Get retrieves a repository from Etcd. The `Owner` and `Name` fields must be
-// set for this method to work properly
-func (r *Repository) Get(ctx context.Context, etcdKV etcd.KeysAPI) error {
+// Get retrieves a repository info struct from Etcd. The Owner and Name fields
+// must be set for this method to work properly
+func (r *RepositoryInfo) Get(ctx context.Context, etcdKV etcd.KeysAPI) error {
 	return libetcd.GetJSON(ctx, etcdKV, r.key(), r)
 }
