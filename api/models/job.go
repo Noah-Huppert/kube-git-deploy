@@ -2,7 +2,10 @@ package models
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"strconv"
+	"strings"
 
 	"github.com/Noah-Huppert/kube-git-deploy/api/libetcd"
 
@@ -22,10 +25,60 @@ type Job struct {
 	Metadata JobMetadata `json:"metadata"`
 }
 
+func GetTrackedGHRepoJobsDirKey(user, repo string) string {
+	return fmt.Sprintf("%s/jobs",
+		GetTrackedGHRepoDirKey(j.Metadata.Owner, j.Metadata.Name))
+}
+
 // key returns the Etcd key a job should be stored in
 func (j Job) key() string {
-	return fmt.Sprintf("%s/%s/%s/jobs/%d", libetcd.KeyDirTrackedGHRepos,
-		j.Metadata.Owner, j.Metadata.Name, j.ID)
+	return fmt.Sprintf("%s/%d",
+		GetTrackedGHRepoJobsDirKey(j.Metadata.Owner, j.Metadata.Name),
+		j.ID)
+}
+
+// Create stores a new job. Finds the next job ID and saves it in the Job.ID
+// field. Does not work if the job has already been stored
+func (j *Job) Create(ctx context.Context, etcdKV etcd.KeysAPI) error {
+	// Find next ID
+	jobsDir := GetTrackedGHRepoJobsDirKey(j.Metadata.Owner,
+		j.Metadata.Name)
+
+	resp, err := etcdKV.Get(ctx, jobsDir, &etcd.GetOptions{
+		Recursive: true,
+		Sort:      true,
+		Quorum:    true,
+	})
+
+	if err != nil {
+		return fmt.Errorf("error querying job IDs: %s", err.Error())
+	}
+
+	if resp.Node == nil {
+		return errors.New("while finding next Job ID, result node " +
+			"was nil")
+	}
+
+	highestJobID := -1
+	for _, node := range resp.Node.Nodes {
+		keyParts := strings.Split(node.Key, "/")
+
+		jobID := strconv.ParseInt(keyParts[len(keyParts)-1], 10, 64)
+
+		if jobID > highestJobID {
+			highestJobID = jobID
+		}
+	}
+
+	j.ID = highestJobID + 1
+
+	// Save
+	err = j.Set(ctx, etcdKV)
+	if err != nil {
+		return fmt.Errorf("error setting job: %s", err.Error())
+	}
+
+	return nil
 }
 
 // Set stores a job in Etcd
