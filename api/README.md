@@ -263,7 +263,8 @@ Tracked GitHub repository information.
 
 Fields:
 
-- `slug` (String): Name of repository in `username/repo-name` format
+- `owner` (String): GitHub repository owner
+- `name` (String): GitHub repository name
 - `web_hook_id` (Integer): ID of GitHub web socket
 
 ## Job Model
@@ -274,12 +275,23 @@ details on the structure of ajob.
 
 Fields:
 
+- `id` (Integer): ID of job
 - `modules` (Array[Job Module]): Modules in repository
 	- `configuration` (Object): Raw module configuration
-	- `steps` (Array[Job Module Step]): Steps in module
-		- `status` (String): Status of step, allowed values:
-			- `waiting`: Initiated but not started
-			- `running`: Running
-			- `success`: Successfully completed
-			- `error`: Completed but failed
-		- `output` (String): Raw output of step
+		- `docker` (Object): Docker configuration with keys from
+			[Step Definitions](#step-definitions)
+		- `helm` (Object): Helm configuration with keys from 
+			[Step Definitions](#step-definitions)
+	- `state` (Object): Steps in module
+		- `{docker,helm}`
+			- `status` (String): Status of step, allowed values:
+				- `waiting`: Initiated but not started
+				- `running`: Running
+				- `success`: Successfully completed
+				- `error`: Completed but failed
+			- `output` (String): Raw output of step
+- `metadata` (Object): Information about event which triggered job
+	- `owner` (String): GitHub repository owner
+	- `name` (String): GitHub repository name
+	- `branch` (String): Name of branch of commit which triggered job
+	- `commit_sha` (String): Git commit sha which triggered job
