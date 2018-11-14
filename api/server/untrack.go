@@ -84,7 +84,14 @@ func (h UntrackGHRepoHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 
 	// Delete GitHub hook
 	ghClient, err := libgh.NewClient(h.ctx, h.etcdKV)
-	if err != nil {
+	if err == libgh.ErrNoAuth {
+		responder.Respond(http.StatusUnauthorized,
+			map[string]interface{}{
+				"ok":    false,
+				"error": libgh.ErrNoAuth.Error(),
+			})
+		return
+	} else if err != nil {
 		h.logger.Errorf("error creating GitHub client: %s",
 			err.Error())
 
