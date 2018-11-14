@@ -189,23 +189,21 @@ A key is a value file if it has a **V:** before its key.
 
 - **D:** `/github`
 	- **D:** `/auth`
-		- **V:** `/token`: Jolds a user's GitHub access token
+		- **V:** `/token`: Holds a user's GitHub access token
 	- **D:** `/repositories/tracked`
-		- **D:** `/[USER]/[REPO]`: Each tracked GitHub repository has its own
-			directory
+		- **D:** `/[USER]/[REPO]`
 			- **V:** `/name`: Name of tracked GitHub repository, in standard 
 				`username/repo-name` GitHub format
 			- **V:** `/web_hook_id`: ID of GitHub repository web hook
 			- **D:** `/jobs`
-				- **D:** `/[ID]`: Each job has its own directory
+				- **D:** `/[ID]`
 					- **V:** `/status`: Current status of job, values are:
 						- `waiting`: Initiated but not started
 						- `running`: Running
 						- `done`: Successfully completed
 						- `error`: Completed but failed
-					- **D:** `/output`: Holds output for each module in job
-						- **D:** `/[XXX]_[MODULE]`: Each module gets its
-							own directory
+					- **D:** `/modules`
+						- **D:** `/[XXX]_[MODULE]`
 							- **D:** `/{docker,helm}`
 								- **V:** `/status`: Status of build, values
 									same as above
