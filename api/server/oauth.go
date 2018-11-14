@@ -5,8 +5,8 @@ import (
 	"net/http"
 
 	"github.com/Noah-Huppert/kube-git-deploy/api/config"
-	"github.com/Noah-Huppert/kube-git-deploy/api/github"
 	"github.com/Noah-Huppert/kube-git-deploy/api/libetcd"
+	"github.com/Noah-Huppert/kube-git-deploy/api/libgh"
 
 	"github.com/Noah-Huppert/golog"
 	etcd "go.etcd.io/etcd/client"
@@ -46,7 +46,7 @@ func (h GHOAuthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	code := codeVals[0]
 
 	// Exchange with GitHub API
-	exchangeReq := github.NewExchangeGitHubCodeReq(h.cfg, code)
+	exchangeReq := libgh.NewExchangeGitHubCodeReq(h.cfg, code)
 
 	authToken, err := exchangeReq.Exchange()
 	if err != nil {
