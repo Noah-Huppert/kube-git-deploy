@@ -182,103 +182,28 @@ POST `/api/v0/github/repositories/:user/:repo/web_hook`
 # Data
 Data is stored in Etcd.
 
+## Tree Overview
 Etcd stores data in a directory like structure.  
 
 In the diagram below a key is a directory if it has a **D:** before its key.  
 A key is a value file if it has a **V:** before its key.
 
-- **D:** `/github`
-	- **D:** `/auth`
-		- **V:** `/token`: Holds a user's GitHub access token
-	- **D:** `/repositories/tracked`
-		- **D:** `/[USER]/[REPO]`
-			- **V:** `/name`: Name of tracked GitHub repository, in standard 
-				`username/repo-name` GitHub format
-			- **V:** `/web_hook_id`: ID of GitHub repository web hook
-			- **D:** `/jobs`
-				- **D:** `/[ID]`
-					- **V:** `/status`: Current status of job, values are:
-						- `waiting`: Initiated but not started
-						- `running`: Running
-						- `done`: Successfully completed
-						- `error`: Completed but failed
-					- **D:** `/modules`
-						- **D:** `/[XXX]_[MODULE]`
-							- **D:** `/{docker,helm}`
-								- **V:** `/status`: Status of build, values
-									same as above
-								- **V:** `/output`: Build output
+- **D:** `/github/auth`
+	- **V:** `/token`: Holds a user's GitHub access token
+	- **D:** `/repositories/tracked/[USER]/[REPO]`
+		- **V:** `/name`: Name of tracked GitHub repository, in standard 
+			`username/repo-name` GitHub format
+		- **V:** `/web_hook_id`: ID of GitHub repository web hook
+		- **D:** `/jobs/[ID]`
+			- **V:** `/status`: Current status of job, see [Job Status](#job-status)
+			- **D:** `/modules/[XXX]_[MODULE]/{docker,helm}`
+				- **V:** `/status`: Status of build, see [Job Status](#job-status)
+				- **V:** `/output`: Build output
 
-## GitHub Access Token
-**Key:** `/github/auth/token`  
-**Dir:** False
+## Job Status
+Jobs indicate status with the following values:
 
-Holds a user's GitHub access token.
-
-## Tracked GitHub Repository
-**Key:** `/github/repositories/tracked/[USER]/[REPO]`  
-**Dir:** True
-
-Tracked GitHub repositories each have their own directory.  
-
-Data related to this tracked GitHub repository is stored in nodes inside of 
-this directory.
-
-### Name
-**Key:** `/github/repoositories/tracked/[USER]/[REPO]/name`  
-**Dir:** False
-
-Holds the name of the tracked GitHub repository.
-
-### Web Hook ID
-**Key:** `/github/repositories/tracked/[USER]/[REPO]/web_hook_id`  
-**Dir:** False
-
-Holds the ID of the GitHub repository web hook.
-
-### Jobs
-**Key:** `/github/repositories/tracked/[USER]/[REPO]/jobs`  
-**Dir:** True
-
-Holds information about build and deploy jobs for a repository.  
-
-Each job will have a unique ID.  
-
-A job is created when a GitHub repository web hook is sent to the server.
-
-#### Job Status
-**Key:** `/github/repositories/tracked/[USER]/[REPO]/jobs/[ID]/status`  
-**Dir:** False
-
-Holds the status of the job.  
-
-Valid values:
-
-- `triggered`
-	- Indicates a job has been triggered but nothing has started
-- `running`
-	- Indicates a job is currently running
-- `done`
-	- Indicates a job has completed
-- `error`
-	- Indicates a job completed but failed
-
-#### Job Output
-**Key:** `/github/repositories/tracked/[USER]/[REPO]/jobs/[ID]/output`  
-**Dir:** True
-
-Holds job output.  
-
-Inside the output directory can be any number of sub directories. Each sub 
-directory represents module.  
-
-##### Job Module Output
-**Key:** `/github/repositories/tracked/[USER]/[REPO]/jobs/[ID]/output/xxx_[MODULE]`  
-**Dir:** True
-
-Inside each module the following files are present:
-
-- `docker`
-- `helm`
-
-They contain all relevant built output for each step.
+- `waiting`: Initiated but not started
+- `running`: Running
+- `done`: Successfully completed
+- `error`: Completed but failed
