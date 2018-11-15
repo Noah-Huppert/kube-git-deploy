@@ -69,17 +69,17 @@ Anytime code is pushed to a repository Kube Git Deploy will run a job.
 The behavior of jobs is defined by a file in the repository root named 
 `kube-git-deploy.toml`.
 
-A file contains modules. Modules are individual items which can be built
+A file contains units. Units are individual items which can be built
 and deployed.
 
-Each module contains steps. Steps define the actions a job performs. 
+Each unit contains actions. Actions define what a job does for that unit. 
 
-There are two types of steps: `docker` and `helm`.  
+There are two types of actions: `docker` and `helm`.  
 
-If a module defines a Docker and Helm step, the Docker step will be
+If a unit defines a Docker and Helm action, the Docker action will be
 executed first.
 
-### Step Definitions
+### Action Definitions
 **Docker:**
 - `directory` (String): Directory Dockerfile is located in
 - `tag` (String): Docker image tag 
@@ -100,7 +100,7 @@ Go templating can be used inside the file. The following data can be access:
 
 
 ### Syntax
-Modules are TOML sections. Steps are module sub-sections. Step parameters are 
+Units are TOML sections. Actions are unit sub-sections. Action parameters are 
 key value pairs.
 
 ### Example
@@ -125,17 +125,17 @@ tag = "noahhuppert/example-ui:{{ .git.sha }}"
 chart = "./ui/deploy"
 ```
 
-This will create 2 modules named `api` and `ui`.  
+This will create 2 units named `api` and `ui`.  
 
-The `api` module will have 2 steps. The Docker step will build a Docker an
+The `api` unit will have 2 actions. The Docker action will build a Docker an
 image in the `./api` directory and tag it with
 `noahhuppert/example-api:{{ .git.sha }}`.
 
 Notice how the Docker tag uses Go templating to get the Git commit's sha.  
 
-The Helm step will deploy a Helm chart in `./api/deploy`.  
+The Helm action will deploy a Helm chart in `./api/deploy`.  
 
-The `ui` module is similar.
+The `ui` unit is similar.
 
 #### Template Example
 Example file:
@@ -152,7 +152,7 @@ chart = "./deploy"
 {{ end }}
 ```
 
-This will define an `api` module, which will only be deployed on the
+This will define an `api` unit, which will only be deployed on the
 master branch.
 
 # Endpoints
