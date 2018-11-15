@@ -80,14 +80,8 @@ If a unit defines a Docker and Helm action, the Docker action will be
 executed first.
 
 ### Action Definitions
-**Docker:**
-- `directory` (String): Directory Dockerfile is located in
-- `tag` (String): Docker image tag 
-
-**Helm:**  
-- `chart` (String): Helm chart to deploy
-	- If chart is located in repository value should be in form: `repository@chart`
-	- Otherwise should be local path to chart
+[Docker](https://godoc.org/github.com/Noah-Huppert/kube-git-deploy/api/models#DockerActionConfig)  
+[Helm](https://godoc.org/github.com/Noah-Huppert/kube-git-deploy/api/models#HelmActionConfig)
 
 ### Templating
 Go templating can be used inside the file. The following data can be access:
