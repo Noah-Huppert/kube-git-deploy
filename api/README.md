@@ -84,14 +84,9 @@ executed first.
 [Helm](https://godoc.org/github.com/Noah-Huppert/kube-git-deploy/api/models#HelmActionConfig)
 
 ### Templating
-Go templating can be used inside the file. The following data can be access:
+Go templating can be used inside the file.  
 
- - `git` (Map)
-	- `branch` (String)
-		- Commit branch
-	- `sha` (String)
-		- Commit SHA
-
+[This data is available in Go templates](https://godoc.org/github.com/Noah-Huppert/kube-git-deploy/api/models#JobTarget).
 
 ### Syntax
 Units are TOML sections. Actions are unit sub-sections. Action parameters are 
