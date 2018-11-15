@@ -57,6 +57,12 @@ func main() {
 	// Create JobRunner
 	jobRunner := jobs.NewJobRunner(ctx, logger.GetChild("job_runner"))
 
+	go func() {
+		logger.Info("Starting Job Runner")
+
+		jobRunner.Run()
+	}()
+
 	// Run HTTP servers
 	serverReturns := make(chan string)
 

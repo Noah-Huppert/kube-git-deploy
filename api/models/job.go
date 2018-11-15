@@ -29,8 +29,11 @@ type Job struct {
 }
 
 // NewJob creates a new Job. Intializes all JobState.Stage fields to Queued.
-func NewJob(target JobTarget) *Job {
+func NewJob(repoID RepositoryID, target JobTarget) *Job {
 	j := Job{
+		ID: JobID{
+			RepositoryID: repoID,
+		},
 		Target: target,
 	}
 

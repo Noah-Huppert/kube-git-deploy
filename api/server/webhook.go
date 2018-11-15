@@ -11,8 +11,8 @@ import (
 
 	"github.com/Noah-Huppert/golog"
 	"github.com/google/go-github/github"
+	"github.com/gorilla/mux"
 	etcd "go.etcd.io/etcd/client"
-	//"github.com/gorilla/mux"
 )
 
 // WebHookHandler triggers a build and deploy when GitHub sends a web
@@ -37,9 +37,9 @@ func (h WebHookHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	responder := NewJSONResponder(h.logger, w)
 
 	// Get URL parameters
-	//vars := mux.Vars(r)
-	//user := vars["user"]
-	//repo := vars["repo"]
+	vars := mux.Vars(r)
+	user := vars["user"]
+	repo := vars["repo"]
 
 	// JSON decode body
 	var event github.PushEvent
@@ -82,10 +82,11 @@ func (h WebHookHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		Commit: *(event.After),
 	}
 
-	h.logger.Debugf("JobTarget: %#v", jobTarget)
-
 	// Save job in Etcd
-	job := models.NewJob(jobTarget)
+	job := models.NewJob(models.RepositoryID{
+		Owner: user,
+		Name:  repo,
+	}, jobTarget)
 
 	err = job.Create(h.ctx, h.etcdKV)
 	if err != nil {
@@ -101,7 +102,9 @@ func (h WebHookHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Run job
+	h.logger.Debugf("submitting job")
 	h.jobRunner.Submit(job)
+	h.logger.Debugf("submitted job")
 
 	// Respond with OK
 	responder.Respond(http.StatusOK, map[string]interface{}{

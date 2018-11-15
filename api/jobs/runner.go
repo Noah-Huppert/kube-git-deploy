@@ -50,17 +50,21 @@ func (r *JobRunner) Run() error {
 			_, ok := r.jobs[job.ID]
 			if ok {
 				// Already running
+				r.logger.Debugf("already running: %#v", job)
 				break
 			}
 
 			// Add to jobs map
 			r.jobs[job.ID] = job
 
+			r.logger.Debugf("received job: %#v", job)
+
 			// Execute job
 			go r.executeJob(job)
 
 		case <-r.ctx.Done():
-			continue
+			r.logger.Info("Job Runner stopping")
+			return nil
 		}
 	}
 
