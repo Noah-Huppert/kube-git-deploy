@@ -8,7 +8,7 @@ import (
 	"github.com/Noah-Huppert/kube-git-deploy/api/models"
 
 	"github.com/Noah-Huppert/golog"
-	"github.com/google/go-github/github"
+	etcd "go.etcd.io/etcd/client"
 	//"github.com/gorilla/mux"
 )
 
@@ -17,6 +17,9 @@ import (
 type WebHookHandler struct {
 	// logger prints debug information
 	logger golog.Logger
+
+	// etcdKV is an Etcd key value API client
+	etcdKV etcd.KeysAPI
 }
 
 // ServerHTTP implements http.Handler
@@ -71,6 +74,24 @@ func (h WebHookHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.logger.Debugf("JobTarget: %#v", jobTarget)
+
+	// Save job in Etcd
+	job := &models.Job{
+		Target: jobTarget,
+	}
+
+	err = job.Create(h.ctx, h.etcdKV)
+	if err != nil {
+		h.logger.Errorf("error saving Job in Etcd: %s", err.Error())
+
+		responder.Respond(http.StatusInternalServerError,
+			map[string]interface{}{
+				"ok":    false,
+				"error": "failed to save job in Etcd",
+			})
+
+		return
+	}
 
 	// Respond with OK
 	responder.Respond(http.StatusOK, map[string]interface{}{
