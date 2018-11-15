@@ -264,6 +264,21 @@ POST `/api/v0/github/repositories/:user/:repo/web_hook`
 
 - `ok` (Boolean)
 
+## Health Check
+GET `/healthz`
+
+**API:** Public, Private
+
+**Actions:** None
+
+**Request:** None
+
+**Response:**
+
+- `ok` (Boolean)
+- `server` (String)
+	- Name of server, either `public` or `private`
+
 # Data
 Data is stored in Etcd.  
 

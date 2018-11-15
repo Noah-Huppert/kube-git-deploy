@@ -18,6 +18,11 @@ func NewPublicServer(ctx context.Context, logger golog.Logger,
 	// Setup routes
 	router := mux.NewRouter()
 
+	router.Handle("/healthz", HealthHandler{
+		logger: logger.GetChild("health"),
+		server: "public",
+	}).Methods("GET")
+
 	router.Handle("/api/v0/github/repositories/{user}/{repo}/web_hook",
 		WebHookHandler{
 			logger: logger.GetChild("github.webhook"),

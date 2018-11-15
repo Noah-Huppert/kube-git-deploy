@@ -6,7 +6,7 @@ import (
 
 	"github.com/Noah-Huppert/golog"
 	"github.com/google/go-github/github"
-	"github.com/gorilla/mux"
+	//"github.com/gorilla/mux"
 )
 
 // WebHookHandler triggers a build and deploy when GitHub sends a web
@@ -22,9 +22,9 @@ func (h WebHookHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	responder := NewJSONResponder(h.logger, w)
 
 	// Get URL parameters
-	vars := mux.Vars(r)
-	user := vars["user"]
-	repo := vars["repo"]
+	//vars := mux.Vars(r)
+	//user := vars["user"]
+	//repo := vars["repo"]
 
 	// JSON decode body
 	var event github.PushEvent
@@ -44,7 +44,7 @@ func (h WebHookHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.logger.Debugf("%s/%s, event: %#v", user, repo, event)
+	h.logger.Debugf("Head: %s, Ref: %s", event.Head, event.Ref)
 
 	// Respond with OK
 	responder.Respond(http.StatusOK, map[string]interface{}{
