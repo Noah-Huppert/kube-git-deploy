@@ -2,9 +2,10 @@ package jobs
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"io"
 	"net/http"
-	"net/url"
 	"os"
 
 	"github.com/Noah-Huppert/kube-git-deploy/api/libgh"
@@ -35,7 +36,7 @@ type PrepareAction struct {
 }
 
 // Run executes the prepare action
-func (a PrepareAction) Run(job *models.Job, state *models.ActionState) {
+func (a PrepareAction) Run(job *models.Job, state *models.ActionState) error {
 	// Set JobState.PrepareState.Stage to Running
 	state.Stage = models.Running
 
@@ -45,13 +46,10 @@ func (a PrepareAction) Run(job *models.Job, state *models.ActionState) {
 	// ... Initialize GH client
 	ghClient, err := libgh.NewClient(a.ctx, a.etcdKV)
 	if err == libgh.ErrNoAuth {
-		state.SetError("Not authenticated " +
-			"with GitHub")
-		return
+		return errors.New("Not authenticated with GitHub")
 	} else if err != nil {
-		state.SetErrorf("Error initializing GitHub "+
-			"API: %s", err.Error())
-		return
+		return fmt.Errorf("Error initializing GitHub API: %s",
+			err.Error())
 	}
 
 	// ... Call API
@@ -63,21 +61,19 @@ func (a PrepareAction) Run(job *models.Job, state *models.ActionState) {
 			Ref: job.Target.Commit,
 		})
 	if err != nil {
-		state.SetErrorf("Error retrieving repository download "+
+		return fmt.Errorf("Error retrieving repository download "+
 			"URL: %s", err.Error())
-		return
 	}
 
 	// Create job working directory
 	state.AddOutput("Setting up working directory")
 
-	wrkDir := GetJobWorkingDir(job)
+	wrkDir := GetJobWorkingDir(*job)
 
 	err = os.MkdirAll(wrkDir, 0777)
 	if err != nil {
-		state.SetErrorf("Error creating working directory: %s",
+		return fmt.Errorf("Error creating working directory: %s",
 			err.Error())
-		return
 	}
 
 	// Download GitHub repository contents
@@ -87,41 +83,36 @@ func (a PrepareAction) Run(job *models.Job, state *models.ActionState) {
 	dlPath := fmt.Sprintf("%s/download.tar", wrkDir)
 	dlFile, err := os.Create(dlPath)
 	if err != nil {
-		state.SetErrorf("Error creating repository download "+
+		return fmt.Errorf("Error creating repository download "+
 			"file: %s", err.Error())
-		return
 	}
 
 	// ... Download file
 	resp, err := http.Get(dlURL.String())
 	if err != nil {
-		state.SetErrorf("Error making repository download "+
+		return fmt.Errorf("Error making repository download "+
 			"request: %s", err.Error())
-		return
 	}
 
 	// ... Copy request body to file
 	_, err = io.Copy(dlFile, resp.Body)
 	if err != nil {
-		state.SetErrorf("Error copying repository download request "+
+		return fmt.Errorf("Error copying repository download request "+
 			"body to file: %s", err.Error())
-		return
 	}
 
 	// ... Close HTTP request body
 	err = resp.Body.Close()
 	if err != nil {
-		state.SetErrorf("Error closing repository download "+
+		return fmt.Errorf("Error closing repository download "+
 			"request body: %s", err.Error())
-		return
 	}
 
 	// ... Close file
 	err = dlFile.Close()
 	if err != nil {
-		state.SetErrorf("Error closing repository download "+
+		return fmt.Errorf("Error closing repository download "+
 			"file: %s", err.Error())
-		return
 	}
 
 	// Extract download
@@ -130,9 +121,8 @@ func (a PrepareAction) Run(job *models.Job, state *models.ActionState) {
 	// ... Open file
 	rawTarFile, err := os.Open(dlPath)
 	if err != nil {
-		state.SetErrorf("Error opening repository download tar "+
+		return fmt.Errorf("Error opening repository download tar "+
 			"file: %s", err.Error())
-		return
 	}
 
 	// ... Open tar file
@@ -140,35 +130,33 @@ func (a PrepareAction) Run(job *models.Job, state *models.ActionState) {
 
 	err = tar.Open(rawTarFile, -1)
 	if err != nil {
-		state.SetErrorf("Error opening repository download tar file "+
-			"as tar file: %s", err.Error())
-		return
+		return fmt.Errorf("Error opening repository download tar "+
+			"file as tar file: %s", err.Error())
 	}
 
 	// ... Unarchive tar file
 	err = tar.Unarchive(".", wrkDir)
 	if err != nil {
-		state.SetErrorf("Error unarchiving repository download tar "+
+		return fmt.Errorf("Error unarchiving repository download tar "+
 			"file: %s", err.Error())
-		return
 	}
 
 	// ... Close tar file
 	err = tar.Close()
 	if err != nil {
-		state.SetErrorf("Error closing repository download tar "+
+		return fmt.Errorf("Error closing repository download tar "+
 			"file: %s", err.Error())
-		return
 	}
 
 	// ... Close file
 	err = rawTarFile.Close()
 	if err != nil {
-		state.SetErrorf("Error closing repository download tar "+
+		return fmt.Errorf("Error closing repository download tar "+
 			"file: %s", err.Error())
-		return
 	}
 
 	// Done
-	status.Stage = Done
+	state.Stage = models.Done
+
+	return nil
 }

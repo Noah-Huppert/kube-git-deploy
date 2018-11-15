@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/Noah-Huppert/kube-git-deploy/api/jobs"
 	"github.com/Noah-Huppert/kube-git-deploy/api/models"
 
 	"github.com/Noah-Huppert/golog"
@@ -25,6 +26,9 @@ type WebHookHandler struct {
 
 	// etcdKV is an Etcd key value API client
 	etcdKV etcd.KeysAPI
+
+	// jobRunner is used to run jobs
+	jobRunner *jobs.JobRunner
 }
 
 // ServerHTTP implements http.Handler
@@ -95,6 +99,9 @@ func (h WebHookHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		return
 	}
+
+	// Run job
+	h.jobRunner.Submit(job)
 
 	// Respond with OK
 	responder.Respond(http.StatusOK, map[string]interface{}{

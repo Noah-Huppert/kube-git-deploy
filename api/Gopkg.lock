@@ -20,10 +20,22 @@
   version = "v0.2.0"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/dsnet/compress"
+  packages = [".","bzip2","bzip2/internal/sais","internal","internal/errors","internal/prefix"]
+  revision = "cc9eb1d7ad760af14e8f918698f745e80377af4f"
+
+[[projects]]
   name = "github.com/golang/protobuf"
   packages = ["proto"]
   revision = "aa810b61a9c79d51363740d207bb46cf8e620ed5"
   version = "v1.2.0"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/golang/snappy"
+  packages = ["."]
+  revision = "2e65f85255dbc3072edf28d6b5b8efc472979f5a"
 
 [[projects]]
   name = "github.com/google/go-github"
@@ -56,10 +68,40 @@
   version = "v1.3.0"
 
 [[projects]]
+  name = "github.com/mholt/archiver"
+  packages = ["."]
+  revision = "298df7b5f54d0940dc376a7581ce9c47ecbb07b2"
+  version = "v3.0.1"
+
+[[projects]]
+  name = "github.com/nwaples/rardecode"
+  packages = ["."]
+  revision = "cc3e4b2381762c56dbcdf9f93be03349a1dc1c14"
+  version = "v1.0.0"
+
+[[projects]]
+  name = "github.com/pierrec/lz4"
+  packages = [".","internal/xxh32"]
+  revision = "635575b42742856941dbc767b44905bb9ba083f6"
+  version = "v2.0.7"
+
+[[projects]]
   name = "github.com/ugorji/go"
   packages = ["codec"]
   revision = "b4c50a2b199d93b13dc15e78929cfb23bfdf21ab"
   version = "v1.1.1"
+
+[[projects]]
+  name = "github.com/ulikunitz/xz"
+  packages = [".","internal/hash","internal/xlog","lzma"]
+  revision = "590df8077fbcb06ad62d7714da06c00e5dd2316d"
+  version = "v0.5.5"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/xi2/xz"
+  packages = ["."]
+  revision = "48954b6210f8d154cb5f8484d3a3e1f83489309e"
 
 [[projects]]
   name = "go.etcd.io/etcd"
@@ -88,6 +130,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "b2a796fcd8e7a42d6407a1ecc645382b7dc2c262ec4b820911110bc603e6fc88"
+  inputs-digest = "4c59f34183c7a70f97743230044548f29427011b4c5436f60a2c3fb2eb1aa07b"
   solver-name = "gps-cdcl"
   solver-version = 1

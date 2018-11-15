@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/Noah-Huppert/kube-git-deploy/api/config"
+	"github.com/Noah-Huppert/kube-git-deploy/api/jobs"
 	"github.com/Noah-Huppert/kube-git-deploy/api/models"
 	"github.com/Noah-Huppert/kube-git-deploy/api/server"
 
@@ -53,6 +54,9 @@ func main() {
 			"repositories key: %s", err.Error())
 	}
 
+	// Create JobRunner
+	jobRunner := jobs.NewJobRunner(ctx, logger.GetChild("job_runner"))
+
 	// Run HTTP servers
 	serverReturns := make(chan string)
 
@@ -76,7 +80,8 @@ func main() {
 		logger.Infof("Starting public HTTP server on %s",
 			cfg.PublicHTTPHost)
 
-		pubServer := server.NewPublicServer(ctx, logger, cfg, etcdKV)
+		pubServer := server.NewPublicServer(ctx, logger, cfg, etcdKV,
+			jobRunner)
 
 		err = pubServer.Run()
 		if err != nil {

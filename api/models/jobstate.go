@@ -16,6 +16,21 @@ type JobState struct {
 	Units map[string]UnitState `json:"units"`
 }
 
+// Done indicates if the Job has finished executing
+func (s JobState) Done() bool {
+	if !(s.PrepareState.Done() && s.CleanupState.Done()) {
+		return false
+	}
+
+	for _, v := range s.Units {
+		if !(v.DockerState.Done() && v.HelmState.Done()) {
+			return false
+		}
+	}
+
+	return true
+}
+
 // UnitState holds the state of a unit.
 type UnitState struct {
 	// ID is the name of a unit
@@ -37,6 +52,11 @@ type ActionState struct {
 
 	// Output holds the raw action output
 	Output []ActionOutput `json:"output"`
+}
+
+// Done indicates if a state's Stage is in a done state
+func (s ActionState) Done() bool {
+	return s.Stage == Done || s.Stage == ErrDone
 }
 
 // NewActionState creates a new ActionState with the Stage field set to Queued
