@@ -40,8 +40,10 @@ func (h UntrackGHRepoHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 
 	// Create repository model
 	repo := models.Repository{
-		Owner: user,
-		Name:  name,
+		ID: models.RepositoryID{
+			Owner: user,
+			Name:  name,
+		},
 	}
 
 	// Check repository exists

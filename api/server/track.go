@@ -43,8 +43,10 @@ func (h TrackGHRepoHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// Create repo model
 	repo := models.Repository{
-		Owner: user,
-		Name:  name,
+		ID: models.RepositoryID{
+			Owner: user,
+			Name:  name,
+		},
 	}
 
 	// Check doesn't already exist in Etcd

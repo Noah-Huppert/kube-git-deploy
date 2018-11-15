@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/Noah-Huppert/kube-git-deploy/api/config"
-	"github.com/Noah-Huppert/kube-git-deploy/api/libetcd"
+	"github.com/Noah-Huppert/kube-git-deploy/api/models"
 	"github.com/Noah-Huppert/kube-git-deploy/api/server"
 
 	"github.com/Noah-Huppert/golog"
@@ -43,7 +43,7 @@ func main() {
 	}
 
 	// Create initial keys
-	_, err = etcdKV.Set(ctx, libetcd.KeyDirTrackedGHRepos, "",
+	_, err = etcdKV.Set(ctx, models.KeyDirRepositories, "",
 		&etcd.SetOptions{
 			Dir:       true,
 			PrevExist: etcd.PrevNoExist,
