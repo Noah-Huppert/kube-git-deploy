@@ -174,8 +174,8 @@ GET `/api/v0/github/repositories/tracked`
 
 **Response:**
 
-- `repositories` (Array[String])
-	- Repository names
+- `repositories` (Array[Repository])
+	- Repository objects
 - `ok` (Boolean)
 
 ## Track Repository
