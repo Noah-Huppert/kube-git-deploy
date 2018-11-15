@@ -11,29 +11,35 @@ import (
 	etcd "go.etcd.io/etcd/client"
 )
 
+// KeyDirRepositories is the key used to store tracked GitHub repositories
+const KeyDirRepositories string = "/github/repositories/tracked"
+
 // Repository contains tracked GitHub repository information
 type Repository struct {
-	// Owner holds the GitHub username of the repository owner
-	Owner string `json:"owner"`
-
-	// Name holds the name of the repository
-	Name string `json:"name"`
+	// ID holds information used to identify the repository
+	ID RepositoryID `json:"id"`
 
 	// WebHookID holds the ID of the created GitHub repository web hook
 	WebHookID int64 `json:"web_hook_id"`
 }
 
-// GetTrackedGHRepoDirKey returns the directory key for a tracked
-// GitHub repository
-func GetTrackedGHRepoDirKey(user, repo string) string {
-	return fmt.Sprintf("%s/%s/%s", libetcd.KeyDirTrackedGHRepos, user,
-		repo)
+// RepositoryID holds information required to identify a GitHub repository
+type RepositoryID struct {
+	// Owner holds the GitHub username of the repository owner
+	Owner string `json:"owner"`
+
+	// Name holds the name of the repository
+	Name string `json:"name"`
+}
+
+// key returns the Etcd directory key for the repository ID
+func (i RepositoryID) key() string {
+	return fmt.Sprintf("%s/%s/%s", KeyDirRepositories, i.Owner, i.Name)
 }
 
 // key returns the Etcd key the repository should be stored in
 func (r Repository) key() string {
-	return fmt.Sprintf("%s/information",
-		GetTrackedGHRepoDirKey(r.Owner, r.Name))
+	return fmt.Sprintf("%s/information", r.ID.key())
 }
 
 // GetAllRepositories retrieves all repositories
@@ -41,12 +47,12 @@ func GetAllRepositories(ctx context.Context,
 	etcdKV etcd.KeysAPI) ([]Repository, error) {
 
 	// Get all nodes in tracked repo directory
-	resp, err := etcdKV.Get(ctx, libetcd.KeyDirTrackedGHRepos,
-		&etcd.GetOptions{
-			Recursive: true,
-			Sort:      true,
-			Quorum:    true,
-		})
+	resp, err := etcdKV.Get(ctx, KeyDirRepositories, &etcd.GetOptions{
+		Recursive: true,
+		Sort:      true,
+		Quorum:    true,
+	})
+
 	if err != nil {
 		return nil, fmt.Errorf("error querying tracked repositories"+
 			" directory in Etcd: %s", err.Error())
@@ -130,7 +136,7 @@ func (r Repository) Exists(ctx context.Context,
 // Sets a directory. Does not work if Repository was previously saved.
 func (r Repository) Create(ctx context.Context, etcdKV etcd.KeysAPI) error {
 	// Create top level directory
-	dirName := GetTrackedGHRepoDirKey(r.Owner, r.Name)
+	dirName := r.ID.key()
 
 	_, err := etcdKV.Set(ctx, dirName, "", &etcd.SetOptions{
 		Dir:       true,
@@ -178,11 +184,10 @@ func (r *Repository) Get(ctx context.Context, etcdKV etcd.KeysAPI) error {
 
 // Delete removes a repository and all of its jobs from Etcd
 func (r Repository) Delete(ctx context.Context, etcdKV etcd.KeysAPI) error {
-	_, err := etcdKV.Delete(ctx, GetTrackedGHRepoDirKey(r.Owner, r.Name),
-		&etcd.DeleteOptions{
-			Recursive: true,
-			Dir:       true,
-		})
+	_, err := etcdKV.Delete(ctx, r.ID.key(), &etcd.DeleteOptions{
+		Recursive: true,
+		Dir:       true,
+	})
 
 	if err != nil {
 		return fmt.Errorf("error deleting repository directory: %s",
