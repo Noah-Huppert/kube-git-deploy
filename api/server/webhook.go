@@ -3,6 +3,9 @@ package server
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
+
+	"github.com/Noah-Huppert/kube-git-deploy/api/models"
 
 	"github.com/Noah-Huppert/golog"
 	"github.com/google/go-github/github"
@@ -44,7 +47,30 @@ func (h WebHookHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.logger.Debugf("Head: %s, Ref: %s", event.Head, event.Ref)
+	// Make Job Target
+	// ... Parse branch
+	refParts := strings.Split(*(event.Ref), "/")
+
+	if len(refParts) != 3 {
+		h.logger.Errorf("error, ref not in \"refs/head/<branch>\" "+
+			"format, ref: %s", *(event.Ref))
+
+		responder.Respond(http.StatusBadRequest,
+			map[string]interface{}{
+				"ok":    false,
+				"error": "failed to parse ref field",
+			})
+		return
+	}
+	branch := refParts[2]
+
+	// ... Make struct
+	jobTarget := models.JobTarget{
+		Branch: branch,
+		Commit: *(event.After),
+	}
+
+	h.logger.Debugf("JobTarget: %#v", jobTarget)
 
 	// Respond with OK
 	responder.Respond(http.StatusOK, map[string]interface{}{
