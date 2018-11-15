@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"strings"
@@ -8,6 +9,7 @@ import (
 	"github.com/Noah-Huppert/kube-git-deploy/api/models"
 
 	"github.com/Noah-Huppert/golog"
+	"github.com/google/go-github/github"
 	etcd "go.etcd.io/etcd/client"
 	//"github.com/gorilla/mux"
 )
@@ -15,6 +17,9 @@ import (
 // WebHookHandler triggers a build and deploy when GitHub sends a web
 // hook request
 type WebHookHandler struct {
+	// ctx is context
+	ctx context.Context
+
 	// logger prints debug information
 	logger golog.Logger
 
@@ -76,9 +81,7 @@ func (h WebHookHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	h.logger.Debugf("JobTarget: %#v", jobTarget)
 
 	// Save job in Etcd
-	job := &models.Job{
-		Target: jobTarget,
-	}
+	job := models.NewJob(jobTarget)
 
 	err = job.Create(h.ctx, h.etcdKV)
 	if err != nil {

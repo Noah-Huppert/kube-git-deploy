@@ -28,6 +28,21 @@ type Job struct {
 	State JobState `json:"state"`
 }
 
+// NewJob creates a new Job. Intializes all JobState.Stage fields to Queued.
+func NewJob(target JobTarget) *Job {
+	j := Job{
+		Target: target,
+	}
+
+	// Initialize PrepareState
+	j.State.PrepareState = NewActionState()
+
+	// Initialize CleanupState
+	j.State.CleanupState = NewActionState()
+
+	return &j
+}
+
 // JobTarget identifies the Git event which triggered the job.
 type JobTarget struct {
 	// Branch is the Git branch.

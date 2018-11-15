@@ -25,6 +25,7 @@ func NewPublicServer(ctx context.Context, logger golog.Logger,
 
 	router.Handle("/api/v0/github/repositories/{user}/{repo}/web_hook",
 		WebHookHandler{
+			ctx:    ctx,
 			logger: logger.GetChild("github.webhook"),
 			etcdKV: etcdKV,
 		}).Methods("POST")

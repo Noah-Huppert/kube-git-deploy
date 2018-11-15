@@ -1,7 +1,17 @@
 package models
 
+import (
+	"fmt"
+)
+
 // JobState holds information about the current run status of a Job.
 type JobState struct {
+	// PrepareState is the state of the prepare action
+	PrepareState *ActionState `json:"prepare_state"`
+
+	// CleanupState is the state of the cleanup action
+	CleanupState *ActionState `json:"cleanup_state"`
+
 	// Units holds unit states. Keys are UnitState.ID values.
 	Units map[string]UnitState `json:"units"`
 }
@@ -10,9 +20,6 @@ type JobState struct {
 type UnitState struct {
 	// ID is the name of a unit
 	ID string `json:"id"`
-
-	// PrepareState is the state of the prepare action
-	PrepareState ActionState `json:"prepare_state"`
 
 	// DockerState is the state of the Docker action. Nil if the unit does
 	// not contain a Docker action.
@@ -29,7 +36,14 @@ type ActionState struct {
 	Stage ActionStage `json:"stage"`
 
 	// Output holds the raw action output
-	Output string `json:"output"`
+	Output []ActionOutput `json:"output"`
+}
+
+// NewActionState creates a new ActionState with the Stage field set to Queued
+func NewActionState() *ActionState {
+	return &ActionState{
+		Stage: Queued,
+	}
 }
 
 // ActionStage indicates how the action is currently existing
@@ -49,3 +63,36 @@ const (
 	// encountered an error.
 	ErrDone ActionStage = "err_done"
 )
+
+// ActionOutput holds a line of output from an action. Indicates if the line
+// is an error or normal.
+type ActionOutput struct {
+	// Text is the output string
+	Text string `json:"text"`
+
+	// Error indicates if the text is error output
+	Error bool
+}
+
+// SetError saves an error to in Output and sets the Stage to ErrDone
+func (s *ActionState) SetError(errStr string) {
+	s.Stage = ErrDone
+	s.Output = append(s.Output, ActionOutput{
+		Text:  errStr,
+		Error: true,
+	})
+}
+
+// SetErrorf acts like SetError but it provides string formatting functionality
+// via fmt.Sprintf
+func (s *ActionState) SetErrorf(errFormat string, v ...interface{}) {
+	s.SetError(fmt.Sprintf(errFormat, v))
+}
+
+// AddOutput saves a line of output to the state
+func (s *ActionState) AddOutput(txt string) {
+	s.Output = append(s.Output, ActionOutput{
+		Text:  txt,
+		Error: false,
+	})
+}
