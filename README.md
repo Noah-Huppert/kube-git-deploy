@@ -12,16 +12,16 @@ pushes.
 # Design
 ## Components
 
-- Etcd data backend
-- Golang API server
+- [Etcd data backend](./api/README.md#data)
+- [Golang API server](./api/README.md#endpoints)
 - Golang CLI
 
 ## Behavior
-API server creates GitHub webhooks for repositories. Has no API authentication.  
+API server creates GitHub web hooks for repositories.  
 
 Receives GitHub webhook requests for every commit.  
 
 Actions on commit depend on contents of `kube-git-deploy.toml` file in
-repository. Actions will be executed in order: Docker -> Helm
+repository. 
 
 Golang CLI configures which GitHub repositories webhooks should be created for.
