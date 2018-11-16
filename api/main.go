@@ -55,10 +55,11 @@ func main() {
 	}
 
 	// Create JobRunner
-	jobRunner := jobs.NewJobRunner(ctx, logger.GetChild("job_runner"))
+	jobRunner := jobs.NewJobRunner(ctx, logger.GetChild("job_runner"),
+		etcdKV)
 
 	go func() {
-		logger.Info("Starting Job Runner")
+		logger.Info("Starting job runner")
 
 		jobRunner.Run()
 	}()

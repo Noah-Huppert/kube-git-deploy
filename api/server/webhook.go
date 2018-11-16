@@ -120,9 +120,7 @@ func (h WebHookHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Run job
-	h.logger.Debugf("submitting job")
 	h.jobRunner.Submit(job)
-	h.logger.Debugf("submitted job")
 
 	// Respond with OK
 	responder.Respond(http.StatusOK, map[string]interface{}{

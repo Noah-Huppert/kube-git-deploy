@@ -35,8 +35,18 @@ type PrepareAction struct {
 	etcdKV etcd.KeysAPI
 }
 
+// NewPrepareAction creates a new PrepareAction
+func NewPrepareAction(ctx context.Context, logger golog.Logger,
+	etcdKV etcd.KeysAPI) *PrepareAction {
+	return &PrepareAction{
+		ctx:    ctx,
+		logger: logger,
+		etcdKV: etcdKV,
+	}
+}
+
 // Run executes the prepare action
-func (a PrepareAction) Run(job *models.Job, state *models.ActionState) error {
+func (a *PrepareAction) Run(job *models.Job, state *models.ActionState) error {
 	// Set JobState.PrepareState.Stage to Running
 	state.Stage = models.Running
 
@@ -80,7 +90,7 @@ func (a PrepareAction) Run(job *models.Job, state *models.ActionState) error {
 	state.AddOutput("Downloading GitHub repository")
 
 	// ... Create file
-	dlPath := fmt.Sprintf("%s/download.tar", wrkDir)
+	dlPath := fmt.Sprintf("%s/download.tar.gz", wrkDir)
 	dlFile, err := os.Create(dlPath)
 	if err != nil {
 		return fmt.Errorf("Error creating repository download "+
@@ -119,41 +129,44 @@ func (a PrepareAction) Run(job *models.Job, state *models.ActionState) error {
 	state.AddOutput("Extracting repository download file")
 
 	// ... Open file
-	rawTarFile, err := os.Open(dlPath)
-	if err != nil {
-		return fmt.Errorf("Error opening repository download tar "+
-			"file: %s", err.Error())
-	}
+	/*
+		rawTarFile, err := os.Open(dlPath)
+		if err != nil {
+			return fmt.Errorf("Error opening repository download tar "+
+				"file: %s", err.Error())
+		}
 
-	// ... Open tar file
-	tar := &archiver.Tar{}
+		// ... Open tar file
 
-	err = tar.Open(rawTarFile, -1)
-	if err != nil {
-		return fmt.Errorf("Error opening repository download tar "+
-			"file as tar file: %s", err.Error())
-	}
+		err = tar.Open(rawTarFile, -1)
+		if err != nil {
+			return fmt.Errorf("Error opening repository download tar "+
+				"file as tar file: %s", err.Error())
+		}
+	*/
 
 	// ... Unarchive tar file
-	err = tar.Unarchive(".", wrkDir)
+	err = archiver.DefaultTarGz.Unarchive(dlPath, wrkDir)
 	if err != nil {
 		return fmt.Errorf("Error unarchiving repository download tar "+
 			"file: %s", err.Error())
 	}
 
 	// ... Close tar file
-	err = tar.Close()
-	if err != nil {
-		return fmt.Errorf("Error closing repository download tar "+
-			"file: %s", err.Error())
-	}
+	/*
+		err = tar.Close()
+		if err != nil {
+			return fmt.Errorf("Error closing repository download tar "+
+				"file: %s", err.Error())
+		}
 
-	// ... Close file
-	err = rawTarFile.Close()
-	if err != nil {
-		return fmt.Errorf("Error closing repository download tar "+
-			"file: %s", err.Error())
-	}
+		// ... Close file
+		err = rawTarFile.Close()
+		if err != nil {
+			return fmt.Errorf("Error closing repository download tar "+
+				"file: %s", err.Error())
+		}
+	*/
 
 	// Done
 	state.Stage = models.Done

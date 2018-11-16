@@ -34,13 +34,16 @@ func NewPublicServer(ctx context.Context, logger golog.Logger,
 			jobRunner: jobRunner,
 		}).Methods("POST")
 
+	// Setup recovery handler
+	recovery := NewRecoveryHandler(logger.GetChild("recovery"), router)
+
 	// Create server
 	return Server{
 		ctx:     ctx,
 		logger:  logger,
 		cfg:     cfg,
 		etcdKV:  etcdKV,
-		handler: router,
+		handler: recovery,
 		port:    cfg.PublicHTTPPort,
 	}
 }

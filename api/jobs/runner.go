@@ -28,9 +28,12 @@ type JobRunner struct {
 }
 
 // NewJobRunner creates a new JobRunner
-func NewJobRunner(ctx context.Context, logger golog.Logger) *JobRunner {
+func NewJobRunner(ctx context.Context, logger golog.Logger,
+	etcdKV etcd.KeysAPI) *JobRunner {
 	return &JobRunner{
 		ctx:      ctx,
+		logger:   logger,
+		etcdKV:   etcdKV,
 		jobs:     map[models.JobID]*models.Job{},
 		jobsChan: make(chan *models.Job),
 	}
@@ -51,20 +54,17 @@ func (r *JobRunner) Run() error {
 			_, ok := r.jobs[job.ID]
 			if ok {
 				// Already running
-				r.logger.Debugf("already running: %#v", job)
 				break
 			}
 
 			// Add to jobs map
 			r.jobs[job.ID] = job
 
-			r.logger.Debugf("received job: %#v", job)
-
 			// Execute job
 			go r.executeJob(job)
 
 		case <-r.ctx.Done():
-			r.logger.Info("Job Runner stopping")
+			r.logger.Info("Job runner stopping")
 			return nil
 		}
 	}
@@ -77,12 +77,7 @@ func (r *JobRunner) Run() error {
 func (r *JobRunner) executeJob(job *models.Job) {
 	// Prepare
 	// ... Run
-	prepareAction := PrepareAction{
-		ctx:    r.ctx,
-		logger: r.logger,
-		etcdKV: r.etcdKV,
-	}
-
+	prepareAction := NewPrepareAction(r.ctx, r.logger, r.etcdKV)
 	prepareOK := true
 
 	err := prepareAction.Run(job, job.State.PrepareState)

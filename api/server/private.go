@@ -60,13 +60,16 @@ func NewPrivateServer(ctx context.Context, logger golog.Logger,
 			etcdKV: etcdKV,
 		}).Methods("DELETE")
 
+	// Setup recovery handler
+	recovery := NewRecoveryHandler(logger.GetChild("recovery"), router)
+
 	// Create server
 	return Server{
 		ctx:     ctx,
 		logger:  logger,
 		cfg:     cfg,
 		etcdKV:  etcdKV,
-		handler: router,
+		handler: recovery,
 		port:    cfg.PrivateHTTPPort,
 	}
 }
