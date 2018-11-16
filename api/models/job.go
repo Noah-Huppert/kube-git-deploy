@@ -20,12 +20,15 @@ type Job struct {
 	// Target identifies the Git event which triggered the job.
 	Target JobTarget `json:"target"`
 
-	// Config holds the job configuration. Nil if it hasn't been
-	// loaded yet.
-	Config *JobConfig `json:"config"`
+	// WorkingDir is the directory that the repository source is located.
+	WorkingDir string `json:"working_dir"`
 
 	// State holds the job state.
 	State JobState `json:"state"`
+
+	// Config holds the job configuration. Nil if it hasn't been
+	// loaded yet.
+	Config *JobConfig `json:"config"`
 }
 
 // NewJob creates a new Job. Intializes all JobState.Stage fields to Queued.

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 
@@ -128,23 +129,6 @@ func (a *PrepareAction) Run(job *models.Job, state *models.ActionState) error {
 	// Extract download
 	state.AddOutput("Extracting repository download file")
 
-	// ... Open file
-	/*
-		rawTarFile, err := os.Open(dlPath)
-		if err != nil {
-			return fmt.Errorf("Error opening repository download tar "+
-				"file: %s", err.Error())
-		}
-
-		// ... Open tar file
-
-		err = tar.Open(rawTarFile, -1)
-		if err != nil {
-			return fmt.Errorf("Error opening repository download tar "+
-				"file as tar file: %s", err.Error())
-		}
-	*/
-
 	// ... Unarchive tar file
 	err = archiver.DefaultTarGz.Unarchive(dlPath, wrkDir)
 	if err != nil {
@@ -152,21 +136,35 @@ func (a *PrepareAction) Run(job *models.Job, state *models.ActionState) error {
 			"file: %s", err.Error())
 	}
 
-	// ... Close tar file
-	/*
-		err = tar.Close()
-		if err != nil {
-			return fmt.Errorf("Error closing repository download tar "+
-				"file: %s", err.Error())
-		}
+	// Remove repository download file
+	state.AddOutput("Removing repository download file")
 
-		// ... Close file
-		err = rawTarFile.Close()
-		if err != nil {
-			return fmt.Errorf("Error closing repository download tar "+
-				"file: %s", err.Error())
-		}
-	*/
+	err = os.Remove(dlPath)
+	if err != nil {
+		return fmt.Errorf("Error removing repository download "+
+			"file: %s", err.Error())
+	}
+
+	// Find extracted repository directory
+	state.AddOutput("Finding working directory")
+
+	fileInfos, err := ioutil.ReadDir(wrkDir)
+	if err != nil {
+		return fmt.Errorf("Error retrieving information about "+
+			"files in working directory: %s", err.Error())
+	}
+
+	if len(fileInfos) != 1 {
+		return fmt.Errorf("Working directory contained an unexpected "+
+			"number of directories, count: %d", len(fileInfos))
+	}
+
+	if !fileInfos[0].IsDir() {
+		return errors.New("Working directory does not contain the " +
+			"expected sub-directory")
+	}
+
+	job.WorkingDir = fmt.Sprintf("%s/%s", wrkDir, fileInfos[0].Name())
 
 	// Done
 	state.Stage = models.Done
