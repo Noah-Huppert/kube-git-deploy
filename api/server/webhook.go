@@ -36,6 +36,24 @@ func (h WebHookHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Create responder
 	responder := NewJSONResponder(h.logger, w)
 
+	// Check web hook is for push event
+	ghEventType := r.Header.Get("X-GitHub-Event")
+	if ghEventType == "ping" {
+		responder.Respond(http.StatusOK, map[string]interface{}{
+			"ok": true,
+		})
+		return
+	} else if ghEventType != "push" {
+		h.logger.Errorf("unknown GitHub event type: %s", ghEventType)
+
+		responder.Respond(http.StatusBadRequest,
+			map[string]interface{}{
+				"ok":    false,
+				"error": "unknown event type",
+			})
+		return
+	}
+
 	// Get URL parameters
 	vars := mux.Vars(r)
 	user := vars["user"]
