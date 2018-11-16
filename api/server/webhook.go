@@ -6,12 +6,13 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/Noah-Huppert/kube-git-deploy/api/jobs"
 	"github.com/Noah-Huppert/kube-git-deploy/api/models"
 
 	"github.com/Noah-Huppert/golog"
 	"github.com/google/go-github/github"
+	"github.com/gorilla/mux"
 	etcd "go.etcd.io/etcd/client"
-	//"github.com/gorilla/mux"
 )
 
 // WebHookHandler triggers a build and deploy when GitHub sends a web
@@ -25,6 +26,9 @@ type WebHookHandler struct {
 
 	// etcdKV is an Etcd key value API client
 	etcdKV etcd.KeysAPI
+
+	// jobRunner is used to run jobs
+	jobRunner *jobs.JobRunner
 }
 
 // ServerHTTP implements http.Handler
@@ -32,10 +36,28 @@ func (h WebHookHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Create responder
 	responder := NewJSONResponder(h.logger, w)
 
+	// Check web hook is for push event
+	ghEventType := r.Header.Get("X-GitHub-Event")
+	if ghEventType == "ping" {
+		responder.Respond(http.StatusOK, map[string]interface{}{
+			"ok": true,
+		})
+		return
+	} else if ghEventType != "push" {
+		h.logger.Errorf("unknown GitHub event type: %s", ghEventType)
+
+		responder.Respond(http.StatusBadRequest,
+			map[string]interface{}{
+				"ok":    false,
+				"error": "unknown event type",
+			})
+		return
+	}
+
 	// Get URL parameters
-	//vars := mux.Vars(r)
-	//user := vars["user"]
-	//repo := vars["repo"]
+	vars := mux.Vars(r)
+	user := vars["user"]
+	repo := vars["repo"]
 
 	// JSON decode body
 	var event github.PushEvent
@@ -78,10 +100,11 @@ func (h WebHookHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		Commit: *(event.After),
 	}
 
-	h.logger.Debugf("JobTarget: %#v", jobTarget)
-
 	// Save job in Etcd
-	job := models.NewJob(jobTarget)
+	job := models.NewJob(models.RepositoryID{
+		Owner: user,
+		Name:  repo,
+	}, jobTarget)
 
 	err = job.Create(h.ctx, h.etcdKV)
 	if err != nil {
@@ -95,6 +118,9 @@ func (h WebHookHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		return
 	}
+
+	// Run job
+	h.jobRunner.Submit(job)
 
 	// Respond with OK
 	responder.Respond(http.StatusOK, map[string]interface{}{

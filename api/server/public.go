@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/Noah-Huppert/kube-git-deploy/api/config"
+	"github.com/Noah-Huppert/kube-git-deploy/api/jobs"
 
 	"github.com/Noah-Huppert/golog"
 	"github.com/gorilla/mux"
@@ -12,7 +13,9 @@ import (
 
 // NewPublicServer creates a new server for public API endpoints
 func NewPublicServer(ctx context.Context, logger golog.Logger,
-	cfg *config.Config, etcdKV etcd.KeysAPI) Server {
+	cfg *config.Config, etcdKV etcd.KeysAPI,
+	jobRunner *jobs.JobRunner) Server {
+
 	logger = logger.GetChild("http.public")
 
 	// Setup routes
@@ -25,10 +28,14 @@ func NewPublicServer(ctx context.Context, logger golog.Logger,
 
 	router.Handle("/api/v0/github/repositories/{user}/{repo}/web_hook",
 		WebHookHandler{
-			ctx:    ctx,
-			logger: logger.GetChild("github.webhook"),
-			etcdKV: etcdKV,
+			ctx:       ctx,
+			logger:    logger.GetChild("github.webhook"),
+			etcdKV:    etcdKV,
+			jobRunner: jobRunner,
 		}).Methods("POST")
+
+	// Setup recovery handler
+	recovery := NewRecoveryHandler(logger.GetChild("recovery"), router)
 
 	// Create server
 	return Server{
@@ -36,7 +43,7 @@ func NewPublicServer(ctx context.Context, logger golog.Logger,
 		logger:  logger,
 		cfg:     cfg,
 		etcdKV:  etcdKV,
-		handler: router,
+		handler: recovery,
 		port:    cfg.PublicHTTPPort,
 	}
 }

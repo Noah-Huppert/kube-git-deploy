@@ -6,3 +6,6 @@ container-data/
 
 # Go dependencies
 vendor/
+
+# Go build
+main
