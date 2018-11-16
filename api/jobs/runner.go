@@ -30,6 +30,7 @@ type JobRunner struct {
 // NewJobRunner creates a new JobRunner
 func NewJobRunner(ctx context.Context, logger golog.Logger) *JobRunner {
 	return &JobRunner{
+		ctx:      ctx,
 		jobs:     map[models.JobID]*models.Job{},
 		jobsChan: make(chan *models.Job),
 	}
