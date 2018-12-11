@@ -1,4 +1,13 @@
-Project Status: Development Stopped. Found project with similar goals and more support: [Draft](https://draft.sh)
+Project Status: Development Stopped  
+
+I have found project with similar goals and more support: 
+[Draft](https://draft.sh).  
+
+The development of Kube Git Deploy was a valuable learning experience. It was 
+my first experience with Etcd.  
+
+I have decided to discontinue this project and spend my time developing
+other projects.
 
 # Kube Git Deploy
 Automatically deploy git repositories to Kubernetes.
