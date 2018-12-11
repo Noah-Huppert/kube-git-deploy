@@ -1,3 +1,5 @@
+Project Status: Development Stopped. Found project with similar goals and more support: [Draft](https://draft.sh)
+
 # Kube Git Deploy
 Automatically deploy git repositories to Kubernetes.
 
