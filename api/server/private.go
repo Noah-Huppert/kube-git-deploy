@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/Noah-Huppert/kube-git-deploy/api/config"
 
@@ -59,6 +60,9 @@ func NewPrivateServer(ctx context.Context, logger golog.Logger,
 			cfg:    cfg,
 			etcdKV: etcdKV,
 		}).Methods("DELETE")
+
+	router.PathPrefix("/").Handler(http.FileServer(
+		http.Dir("../frontend/dist")))
 
 	// Setup recovery handler
 	recovery := NewRecoveryHandler(logger.GetChild("recovery"), router)

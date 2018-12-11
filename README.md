@@ -14,6 +14,7 @@ pushes.
 
 - [Etcd data backend](./api/README.md#data)
 - [Golang API server](./api/README.md#endpoints)
+- [Dashboard website](#./frontend/README.md)
 - Golang CLI
 
 ## Behavior
