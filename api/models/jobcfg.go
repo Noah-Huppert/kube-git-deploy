@@ -8,6 +8,13 @@ type JobConfig struct {
 	Units map[string]UnitConfig `json:"units"`
 }
 
+// NewJobConfig creates a new JobConfig
+func NewJobConfig() JobConfig {
+	return JobConfig{
+		Units: map[string]UnitConfig{},
+	}
+}
+
 // UnitConfig holds the config for a unit
 type UnitConfig struct {
 	// ID holds the name of the unit

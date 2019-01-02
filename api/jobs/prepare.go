@@ -12,6 +12,7 @@ import (
 	"github.com/Noah-Huppert/kube-git-deploy/api/libgh"
 	"github.com/Noah-Huppert/kube-git-deploy/api/models"
 
+	"github.com/BurntSushi/toml/cmd/tomlv"
 	"github.com/Noah-Huppert/golog"
 	"github.com/google/go-github/github"
 	"github.com/mholt/archiver"
@@ -50,6 +51,8 @@ func NewPrepareAction(ctx context.Context, logger golog.Logger,
 func (a *PrepareAction) Run(job *models.Job, state *models.ActionState) error {
 	// Set JobState.PrepareState.Stage to Running
 	state.Stage = models.Running
+
+	// { Download repository
 
 	// Get GitHub repository download URL
 	state.AddOutput("Initializing GitHub API")
@@ -165,6 +168,14 @@ func (a *PrepareAction) Run(job *models.Job, state *models.ActionState) error {
 	}
 
 	job.WorkingDir = fmt.Sprintf("%s/%s", wrkDir, fileInfos[0].Name())
+
+	// }
+
+	// { Parse configuration file
+	// Read configuration file
+	jobConfig := models.NewJobConfig()
+
+	// }
 
 	// Done
 	state.Stage = models.Done
